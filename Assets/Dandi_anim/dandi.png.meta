@@ -35,6 +35,33 @@ TextureImporter:
   - first:
       213: -2524280171921040969
     second: dandi_10
+  - first:
+      213: 5462928597446377425
+    second: arm_left
+  - first:
+      213: 4501209015952694748
+    second: arm_right
+  - first:
+      213: 894945321173968318
+    second: bag
+  - first:
+      213: 233227185538982242
+    second: body
+  - first:
+      213: 9037331016498906902
+    second: eye
+  - first:
+      213: 2303334704088731235
+    second: eyeclose
+  - first:
+      213: 2721125257377172128
+    second: leg_left
+  - first:
+      213: -5233612718955385717
+    second: leg_right
+  - first:
+      213: 5497857753363024451
+    second: mouth
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -76,7 +103,7 @@ TextureImporter:
   nPOTScale: 0
   lightmap: 0
   compressionQuality: 50
-  spriteMode: 0
+  spriteMode: 2
   spriteExtrude: 1
   spriteMeshType: 1
   alignment: 0
@@ -371,6 +398,204 @@ TextureImporter:
       indices: 
       edges: []
       weights: []
+    - serializedVersion: 2
+      name: arm_left
+      rect:
+        serializedVersion: 2
+        x: 2
+        y: 739
+        width: 182
+        height: 237
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1df3d149d9830db40800000000000000
+      internalID: 5462928597446377425
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: arm_right
+      rect:
+        serializedVersion: 2
+        x: 314
+        y: 770
+        width: 149
+        height: 206
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cdd55a760c1877e30800000000000000
+      internalID: 4501209015952694748
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: bag
+      rect:
+        serializedVersion: 2
+        x: 626
+        y: 739
+        width: 310
+        height: 237
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: eb5e8f9270c7b6c00800000000000000
+      internalID: 894945321173968318
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: body
+      rect:
+        serializedVersion: 2
+        x: 938
+        y: 490
+        width: 305
+        height: 486
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 261e30ab3e69c3300800000000000000
+      internalID: 233227185538982242
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: eye
+      rect:
+        serializedVersion: 2
+        x: 1250
+        y: 927
+        width: 150
+        height: 49
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 617890c7dac0b6d70800000000000000
+      internalID: 9037331016498906902
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: eyeclose
+      rect:
+        serializedVersion: 2
+        x: 1562
+        y: 943
+        width: 156
+        height: 33
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 36ec904b5b617ff10800000000000000
+      internalID: 2303334704088731235
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: leg_left
+      rect:
+        serializedVersion: 2
+        x: 2
+        y: 391
+        width: 70
+        height: 97
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0aa4f43210163c520800000000000000
+      internalID: 2721125257377172128
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: leg_right
+      rect:
+        serializedVersion: 2
+        x: 314
+        y: 391
+        width: 70
+        height: 97
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b8ca2b206f87e57b0800000000000000
+      internalID: -5233612718955385717
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mouth
+      rect:
+        serializedVersion: 2
+        x: 626
+        y: 383
+        width: 164
+        height: 105
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 34a84de6f705c4c40800000000000000
+      internalID: 5497857753363024451
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
     outline: []
     customData: 
     physicsShape: []
@@ -385,6 +610,10 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
+      arm_left: 5462928597446377425
+      arm_right: 4501209015952694748
+      bag: 894945321173968318
+      body: 233227185538982242
       dandi_0: 6959390082673138335
       dandi_1: -1160141527782121089
       dandi_10: -2524280171921040969
@@ -396,6 +625,11 @@ TextureImporter:
       dandi_7: 3838055596632185487
       dandi_8: -7119746030461471957
       dandi_9: 9092051559427850253
+      eye: 9037331016498906902
+      eyeclose: 2303334704088731235
+      leg_left: 2721125257377172128
+      leg_right: -5233612718955385717
+      mouth: 5497857753363024451
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
