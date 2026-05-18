@@ -1,26 +1,19 @@
 using UnityEngine;
 
-[RequireComponent(typeof(Collider2D))]
 public class Checkpoint : MonoBehaviour
 {
-    [SerializeField] private bool triggerOnce;
+    private PlayController player;
 
-    private bool isActivated;
-
-    private void OnTriggerEnter2D(Collider2D collision)
+    void Start()
     {
-        if (triggerOnce && isActivated)
-        {
-            return;
-        }
+        player = FindObjectOfType<PlayController>();
+    }
 
-        PlayController player = collision.GetComponentInParent<PlayController>();
-        if (player == null)
+    void OnTriggerEnter2D(Collider2D collision)
+    {
+        if (collision.CompareTag("Player") && player != null)
         {
-            return;
+            player.SetCheckpoint(transform.position);
         }
-
-        player.SetCheckpoint(transform.position);
-        isActivated = true;
     }
 }

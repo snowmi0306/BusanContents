@@ -1,19 +1,20 @@
 using UnityEngine;
 
-[RequireComponent(typeof(Collider2D))]
 public class FallZone : MonoBehaviour
 {
-    [SerializeField] private int damage = 1;
+    private PlayController player;
 
-    private void OnTriggerEnter2D(Collider2D collision)
+    void Start()
     {
-        PlayController player = collision.GetComponentInParent<PlayController>();
-        if (player == null)
-        {
-            return;
-        }
+        player = FindObjectOfType<PlayController>();
+    }
 
-        Debug.Log("낙하 구역 진입");
-        player.TakeDamage(damage);
+    void OnTriggerEnter2D(Collider2D collision)
+    {
+        if (collision.CompareTag("Player") && player != null)
+        {
+            Debug.Log("!");
+            player.TakeDamage(1);
+        }
     }
 }
