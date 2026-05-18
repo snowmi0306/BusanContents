@@ -24,9 +24,11 @@ public class PlayController : MonoBehaviour
     public float invincibleDuration = 1f;
 
     private Rigidbody2D rb;
+    private Collider2D playerCollider;
     private bool isGrounded;
     private float currentStamina;
     private float lastGroundTime;
+    private float defaultGravityScale;
 
     private int currentHealth;
     private float invincibleTimer = 0f;
@@ -38,6 +40,10 @@ public class PlayController : MonoBehaviour
         Application.targetFrameRate = 60;
 
         rb = GetComponent<Rigidbody2D>();
+        playerCollider = GetComponent<Collider2D>();
+        defaultGravityScale = rb.gravityScale;
+        AssignGroundCheckIfNeeded();
+
         currentStamina = maxStamina;
         currentHealth = maxHealth;
         spawnPoint = transform.position;
@@ -54,7 +60,7 @@ public class PlayController : MonoBehaviour
         float moveInput = Input.GetAxis("Horizontal");
         rb.linearVelocity = new Vector2(moveInput * moveSpeed, rb.linearVelocity.y);
 
-        isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer);
+        isGrounded = CheckGrounded();
 
         if (isGrounded)
         {
@@ -66,12 +72,11 @@ public class PlayController : MonoBehaviour
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
         }
 
-        bool isGliding = Input.GetKey(KeyCode.Space) && !isGrounded && rb.linearVelocity.y < 0;
+        bool isGliding = Input.GetKey(KeyCode.Space) && !isGrounded && rb.linearVelocity.y < 0 && currentStamina > 0;
 
-        if (isGliding && currentStamina > 0)
+        if (isGliding)
         {
-            rb.linearVelocity = new Vector2(rb.linearVelocity.x, rb.linearVelocity.y * glideGravity);
-            rb.gravityScale = 0;
+            rb.gravityScale = glideGravity;
 
             currentStamina -= glideStaminaCost * Time.deltaTime;
             currentStamina = Mathf.Max(0, currentStamina);
@@ -80,7 +85,7 @@ public class PlayController : MonoBehaviour
         }
         else
         {
-            rb.gravityScale = 1;
+            rb.gravityScale = defaultGravityScale;
 
             if (isGrounded)
             {
@@ -90,6 +95,45 @@ public class PlayController : MonoBehaviour
                 //Debug.Log("Stamina : " + currentStamina.ToString("F2"));
             }
         }
+    }
+
+    private void AssignGroundCheckIfNeeded()
+    {
+        if (groundCheck != null && groundCheck.IsChildOf(transform))
+        {
+            return;
+        }
+
+        foreach (Transform child in GetComponentsInChildren<Transform>())
+        {
+            if (child != transform && child.name == "GroundCheck")
+            {
+                groundCheck = child;
+                return;
+            }
+        }
+    }
+
+    private bool CheckGrounded()
+    {
+        Vector2 checkPosition = GetGroundCheckPosition();
+        return Physics2D.OverlapCircle(checkPosition, groundCheckRadius, groundLayer) != null;
+    }
+
+    private Vector2 GetGroundCheckPosition()
+    {
+        if (groundCheck != null && groundCheck.IsChildOf(transform))
+        {
+            return groundCheck.position;
+        }
+
+        if (playerCollider != null)
+        {
+            Bounds bounds = playerCollider.bounds;
+            return new Vector2(bounds.center.x, bounds.min.y - groundCheckRadius * 0.5f);
+        }
+
+        return transform.position;
     }
 
     public void TakeDamage(int damage = 1)
