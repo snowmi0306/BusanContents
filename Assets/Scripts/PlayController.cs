@@ -1,3 +1,5 @@
+using Spine;
+using Spine.Unity;
 using UnityEngine;
 
 public class PlayController : MonoBehaviour
@@ -23,10 +25,23 @@ public class PlayController : MonoBehaviour
     public int maxHealth = 3;
     public float invincibleDuration = 1f;
 
+    [Header("Spine Animation")]
+    public string spineObjectName = "Spine GameObject (dandi)";
+    public SkeletonAnimation skeletonAnimation;
+    public string idleAnimationName = "dandi_idle";
+    public string walkAnimationName = "dandi_walk";
+    public string jumpAnimationName = "dandi_Jump";
+    public string glideAnimationName = "dandi_Glide";
+    public string hitAnimationName = "dandi_hit";
+    public float walkInputThreshold = 0.01f;
+
     private Rigidbody2D rb;
+    private Collider2D playerCollider;
     private bool isGrounded;
     private float currentStamina;
     private float lastGroundTime;
+    private float defaultGravityScale;
+    private string currentBaseAnimationName;
 
     private int currentHealth;
     private float invincibleTimer = 0f;
@@ -38,6 +53,11 @@ public class PlayController : MonoBehaviour
         Application.targetFrameRate = 60;
 
         rb = GetComponent<Rigidbody2D>();
+        playerCollider = GetComponent<Collider2D>();
+        defaultGravityScale = rb.gravityScale;
+        AssignGroundCheckIfNeeded();
+        AssignSkeletonAnimationIfNeeded();
+
         currentStamina = maxStamina;
         currentHealth = maxHealth;
         spawnPoint = transform.position;
@@ -54,7 +74,9 @@ public class PlayController : MonoBehaviour
         float moveInput = Input.GetAxis("Horizontal");
         rb.linearVelocity = new Vector2(moveInput * moveSpeed, rb.linearVelocity.y);
 
-        isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer);
+        FlipSpine(moveInput);
+
+        isGrounded = CheckGrounded();
 
         if (isGrounded)
         {
@@ -66,12 +88,11 @@ public class PlayController : MonoBehaviour
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
         }
 
-        bool isGliding = Input.GetKey(KeyCode.Space) && !isGrounded && rb.linearVelocity.y < 0;
+        bool isGliding = Input.GetKey(KeyCode.Space) && !isGrounded && rb.linearVelocity.y < 0 && currentStamina > 0;
 
-        if (isGliding && currentStamina > 0)
+        if (isGliding)
         {
-            rb.linearVelocity = new Vector2(rb.linearVelocity.x, rb.linearVelocity.y * glideGravity);
-            rb.gravityScale = 0;
+            rb.gravityScale = glideGravity;
 
             currentStamina -= glideStaminaCost * Time.deltaTime;
             currentStamina = Mathf.Max(0, currentStamina);
@@ -80,7 +101,7 @@ public class PlayController : MonoBehaviour
         }
         else
         {
-            rb.gravityScale = 1;
+            rb.gravityScale = defaultGravityScale;
 
             if (isGrounded)
             {
@@ -90,6 +111,141 @@ public class PlayController : MonoBehaviour
                 //Debug.Log("Stamina : " + currentStamina.ToString("F2"));
             }
         }
+
+        UpdateSpineAnimation(moveInput, isGliding);
+    }
+
+    private void AssignGroundCheckIfNeeded()
+    {
+        if (groundCheck != null && groundCheck.IsChildOf(transform))
+        {
+            return;
+        }
+
+        foreach (Transform child in GetComponentsInChildren<Transform>())
+        {
+            if (child != transform && child.name == "GroundCheck")
+            {
+                groundCheck = child;
+                return;
+            }
+        }
+    }
+
+    private void AssignSkeletonAnimationIfNeeded()
+    {
+        if (skeletonAnimation != null)
+        {
+            return;
+        }
+
+        foreach (Transform child in GetComponentsInChildren<Transform>(true))
+        {
+            if (child.name == spineObjectName && child.TryGetComponent(out SkeletonAnimation foundSkeletonAnimation))
+            {
+                skeletonAnimation = foundSkeletonAnimation;
+                return;
+            }
+        }
+
+        skeletonAnimation = GetComponentInChildren<SkeletonAnimation>(true);
+    }
+
+    private bool CheckGrounded()
+    {
+        Vector2 checkPosition = GetGroundCheckPosition();
+        return Physics2D.OverlapCircle(checkPosition, groundCheckRadius, groundLayer) != null;
+    }
+
+    private Vector2 GetGroundCheckPosition()
+    {
+        if (groundCheck != null && groundCheck.IsChildOf(transform))
+        {
+            return groundCheck.position;
+        }
+
+        if (playerCollider != null)
+        {
+            Bounds bounds = playerCollider.bounds;
+            return new Vector2(bounds.center.x, bounds.min.y - groundCheckRadius * 0.5f);
+        }
+
+        return transform.position;
+    }
+
+    private void FlipSpine(float moveInput)
+    {
+        if (skeletonAnimation == null || Mathf.Abs(moveInput) <= walkInputThreshold)
+        {
+            return;
+        }
+
+        skeletonAnimation.Skeleton.ScaleX = moveInput < 0 ? -1f : 1f;
+    }
+
+    private void UpdateSpineAnimation(float moveInput, bool isGliding)
+    {
+        if (isGliding)
+        {
+            SetBaseSpineAnimation(glideAnimationName, true);
+            return;
+        }
+
+        if (!isGrounded)
+        {
+            SetBaseSpineAnimation(jumpAnimationName, false);
+            return;
+        }
+
+        if (Mathf.Abs(moveInput) > walkInputThreshold)
+        {
+            SetBaseSpineAnimation(walkAnimationName, true);
+            return;
+        }
+
+        SetBaseSpineAnimation(idleAnimationName, true);
+    }
+
+    private void SetBaseSpineAnimation(string animationName, bool loop)
+    {
+        if (skeletonAnimation == null || string.IsNullOrEmpty(animationName) || currentBaseAnimationName == animationName)
+        {
+            return;
+        }
+
+        if (!HasSpineAnimation(animationName))
+        {
+            Debug.LogWarning($"Spine animation not found: {animationName}");
+            return;
+        }
+
+        skeletonAnimation.AnimationState.SetAnimation(0, animationName, loop);
+        currentBaseAnimationName = animationName;
+    }
+
+    private bool HasSpineAnimation(string animationName)
+    {
+        if (skeletonAnimation == null || skeletonAnimation.SkeletonDataAsset == null || string.IsNullOrEmpty(animationName))
+        {
+            return false;
+        }
+
+        SkeletonData skeletonData = skeletonAnimation.SkeletonDataAsset.GetSkeletonData(false);
+        return skeletonData != null && skeletonData.FindAnimation(animationName) != null;
+    }
+
+    private void PlayHitAnimation()
+    {
+        if (skeletonAnimation == null || !HasSpineAnimation(hitAnimationName))
+        {
+            return;
+        }
+
+        TrackEntry hitEntry = skeletonAnimation.AnimationState.SetAnimation(1, hitAnimationName, false);
+        hitEntry.Complete += delegate
+        {
+            skeletonAnimation.AnimationState.ClearTrack(1);
+        };
     }
 
     public void TakeDamage(int damage = 1)
@@ -102,6 +258,7 @@ public class PlayController : MonoBehaviour
 
         currentHealth -= damage;
         invincibleTimer = invincibleDuration;
+        PlayHitAnimation();
 
         Debug.Log($"데미지! 남은 체력: {currentHealth}");
 
@@ -123,6 +280,7 @@ public class PlayController : MonoBehaviour
         invincibleTimer = invincibleDuration;
         transform.position = spawnPoint;
         rb.linearVelocity = Vector2.zero;
+        rb.gravityScale = defaultGravityScale;
 
         Debug.Log("체크포인트에서 리스폰! 위치: " + spawnPoint);
     }
@@ -136,6 +294,7 @@ public class PlayController : MonoBehaviour
         invincibleTimer = invincibleDuration;
         transform.position = stageStartPoint;
         rb.linearVelocity = Vector2.zero;
+        rb.gravityScale = defaultGravityScale;
         spawnPoint = stageStartPoint;
 
         Debug.Log("게임 오버! 스테이지 처음으로 리스폰: " + stageStartPoint);
