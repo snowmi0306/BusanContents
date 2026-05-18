@@ -4,6 +4,9 @@ using UnityEngine.SceneManagement;
 
 public class StoryCutSceneDOTween : MonoBehaviour
 {
+    private const float HiddenScale = 0.95f;
+    private const float NextButtonFadeDuration = 0.3f;
+
     [Header("Cut Images")]
     [SerializeField] private CanvasGroup[] cutGroups;
 
@@ -26,7 +29,7 @@ public class StoryCutSceneDOTween : MonoBehaviour
     private void Awake()
     {
         HideAllCuts();
-        HideNextButton();
+        SetNextButtonVisible(false, 0f);
     }
 
     private void Start()
@@ -37,132 +40,157 @@ public class StoryCutSceneDOTween : MonoBehaviour
     private void Update()
     {
         if (!Input.GetKeyDown(skipKey))
-            return;
-
-        if (!isFinished)
         {
-            ShowAllImmediately();
             return;
         }
 
-        GoToNextScene();
+        if (isFinished)
+        {
+            GoToNextScene();
+            return;
+        }
+
+        ShowAllImmediately();
     }
 
     private void PlayStoryCutScene()
     {
+        KillSequence();
         sequence = DOTween.Sequence();
-
         sequence.AppendInterval(firstDelay);
 
-        foreach (CanvasGroup cutGroup in cutGroups)
+        if (cutGroups != null)
         {
-            if (cutGroup == null)
-                continue;
-
-            RectTransform rect = cutGroup.GetComponent<RectTransform>();
-
-            sequence.AppendCallback(() =>
+            foreach (CanvasGroup cutGroup in cutGroups)
             {
-                cutGroup.gameObject.SetActive(true);
-                cutGroup.alpha = 0f;
-
-                if (rect != null)
-                    rect.localScale = Vector3.one * 0.95f;
-            });
-
-            sequence.Append(cutGroup.DOFade(1f, fadeDuration));
-
-            if (rect != null)
-            {
-                sequence.Join(
-                    rect.DOScale(Vector3.one, scaleDuration)
-                        .SetEase(Ease.OutBack)
-                );
+                AppendCutTween(cutGroup);
             }
-
-            sequence.AppendInterval(intervalBetweenCuts);
         }
 
-        sequence.AppendCallback(() =>
+        sequence.AppendCallback(FinishCutScene);
+    }
+
+    private void AppendCutTween(CanvasGroup cutGroup)
+    {
+        if (cutGroup == null)
         {
-            isFinished = true;
-            ShowNextButton();
-        });
+            return;
+        }
+
+        RectTransform rect = cutGroup.GetComponent<RectTransform>();
+
+        sequence.AppendCallback(() => PrepareCut(cutGroup, rect));
+        sequence.Append(cutGroup.DOFade(1f, fadeDuration));
+
+        if (rect != null)
+        {
+            sequence.Join(rect.DOScale(Vector3.one, scaleDuration).SetEase(Ease.OutBack));
+        }
+
+        sequence.AppendInterval(intervalBetweenCuts);
+    }
+
+    private void PrepareCut(CanvasGroup cutGroup, RectTransform rect)
+    {
+        cutGroup.gameObject.SetActive(true);
+        cutGroup.alpha = 0f;
+
+        if (rect != null)
+        {
+            rect.localScale = Vector3.one * HiddenScale;
+        }
     }
 
     private void HideAllCuts()
     {
+        if (cutGroups == null)
+        {
+            return;
+        }
+
         foreach (CanvasGroup cutGroup in cutGroups)
         {
-            if (cutGroup == null)
-                continue;
-
-            cutGroup.alpha = 0f;
-            cutGroup.gameObject.SetActive(false);
-
-            RectTransform rect = cutGroup.GetComponent<RectTransform>();
-            if (rect != null)
-                rect.localScale = Vector3.one * 0.95f;
+            SetCutVisible(cutGroup, false, 0f, HiddenScale);
         }
-    }
-
-    private void HideNextButton()
-    {
-        if (nextButtonGroup == null)
-            return;
-
-        nextButtonGroup.alpha = 0f;
-        nextButtonGroup.gameObject.SetActive(false);
-        nextButtonGroup.interactable = false;
-        nextButtonGroup.blocksRaycasts = false;
-    }
-
-    private void ShowNextButton()
-    {
-        if (nextButtonGroup == null)
-            return;
-
-        nextButtonGroup.gameObject.SetActive(true);
-        nextButtonGroup.alpha = 0f;
-        nextButtonGroup.interactable = true;
-        nextButtonGroup.blocksRaycasts = true;
-
-        nextButtonGroup.DOFade(1f, 0.3f);
     }
 
     private void ShowAllImmediately()
     {
-        if (sequence != null)
-            sequence.Kill();
+        KillSequence();
 
-        foreach (CanvasGroup cutGroup in cutGroups)
+        if (cutGroups != null)
         {
-            if (cutGroup == null)
-                continue;
-
-            cutGroup.gameObject.SetActive(true);
-            cutGroup.alpha = 1f;
-
-            RectTransform rect = cutGroup.GetComponent<RectTransform>();
-            if (rect != null)
-                rect.localScale = Vector3.one;
+            foreach (CanvasGroup cutGroup in cutGroups)
+            {
+                SetCutVisible(cutGroup, true, 1f, 1f);
+            }
         }
 
+        FinishCutScene();
+    }
+
+    private void SetCutVisible(CanvasGroup cutGroup, bool isVisible, float alpha, float scale)
+    {
+        if (cutGroup == null)
+        {
+            return;
+        }
+
+        cutGroup.gameObject.SetActive(isVisible);
+        cutGroup.alpha = alpha;
+
+        RectTransform rect = cutGroup.GetComponent<RectTransform>();
+        if (rect != null)
+        {
+            rect.localScale = Vector3.one * scale;
+        }
+    }
+
+    private void FinishCutScene()
+    {
         isFinished = true;
-        ShowNextButton();
+        SetNextButtonVisible(true, 0f);
+        nextButtonGroup?.DOFade(1f, NextButtonFadeDuration);
+    }
+
+    private void SetNextButtonVisible(bool isVisible, float alpha)
+    {
+        if (nextButtonGroup == null)
+        {
+            return;
+        }
+
+        nextButtonGroup.gameObject.SetActive(isVisible);
+        nextButtonGroup.alpha = alpha;
+        nextButtonGroup.interactable = isVisible;
+        nextButtonGroup.blocksRaycasts = isVisible;
     }
 
     public void GoToNextScene()
     {
-        if (sequence != null)
-            sequence.Kill();
+        if (string.IsNullOrEmpty(nextSceneName))
+        {
+            Debug.LogWarning("Next scene name is empty.");
+            return;
+        }
 
+        KillSequence();
         SceneManager.LoadScene(nextSceneName);
+    }
+
+    private void KillSequence()
+    {
+        if (sequence == null)
+        {
+            return;
+        }
+
+        sequence.Kill();
+        sequence = null;
     }
 
     private void OnDestroy()
     {
-        if (sequence != null)
-            sequence.Kill();
+        KillSequence();
     }
 }

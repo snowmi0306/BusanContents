@@ -1,26 +1,28 @@
 using UnityEngine;
 
+[RequireComponent(typeof(Collider2D))]
 public class Spike : MonoBehaviour
 {
-    private PlayController player;
-    private float damageCooldown = 0.5f;
-    private float lastDamageTime = -1f;
+    [SerializeField] private int damage = 1;
+    [SerializeField] private float damageCooldown = 0.5f;
 
-    void Start()
-    {
-        player = FindObjectOfType<PlayController>();
-    }
+    private float lastDamageTime = float.NegativeInfinity;
 
-    void OnTriggerStay2D(Collider2D collision)
+    private void OnTriggerStay2D(Collider2D collision)
     {
-        if (collision.CompareTag("Player") && player != null)
+        if (Time.time - lastDamageTime < damageCooldown)
         {
-            if (Time.time - lastDamageTime >= damageCooldown)
-            {
-                Debug.Log("½ºÆÄÀÌÅ©¿¡ ´ê¾Ò½À´Ï´Ù!");
-                player.TakeDamage(1);
-                lastDamageTime = Time.time;
-            }
+            return;
         }
+
+        PlayController player = collision.GetComponentInParent<PlayController>();
+        if (player == null)
+        {
+            return;
+        }
+
+        Debug.Log("ê°€ì‹œì— ë‹¿ì•˜ìŠµë‹ˆë‹¤");
+        player.TakeDamage(damage);
+        lastDamageTime = Time.time;
     }
 }
