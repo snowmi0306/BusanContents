@@ -331,4 +331,13 @@ public class PlayController : MonoBehaviour
         currentStamina = Mathf.Min(maxStamina, currentStamina + amount);
         Debug.Log("Stamina : " + currentStamina.ToString("F2"));
     }
+
+    public bool TryHeal(int amount)
+    {
+        if (currentHealth >= maxHealth)
+            return false;
+
+        currentHealth = Mathf.Min(currentHealth + amount, maxHealth);
+        return true;
+    }
 }

@@ -17,8 +17,13 @@ public class Spike : MonoBehaviour
         {
             if (Time.time - lastDamageTime >= damageCooldown)
             {
+<<<<<<< HEAD
                 player.TakeDamage(1, false);
                 player.TakeDamage(1);
+=======
+                Debug.Log("½ºÆÄÀÌÅ©¿¡ ´ê¾Ò½À´Ï´Ù!");
+                player.TakeDamage(1, false);
+>>>>>>> 4522a40 (ê²Œì„ ìŠ¤í¬ë¦½íŠ¸ ìˆ˜ì •)
                 lastDamageTime = Time.time;
             }
         }
