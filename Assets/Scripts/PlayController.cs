@@ -25,6 +25,10 @@ public class PlayController : MonoBehaviour
     public int maxHealth = 3;
     public float invincibleDuration = 1f;
 
+    [Header("Damage Knockback")]
+    public Vector2 damageKnockbackForce = new Vector2(6f, 5f);
+
+
     [Header("Spine Animation")]
     public string spineObjectName = "Spine GameObject (dandi)";
     public SkeletonAnimation skeletonAnimation;
@@ -247,6 +251,20 @@ public class PlayController : MonoBehaviour
             skeletonAnimation.AnimationState.ClearTrack(1);
         };
     }
+
+    public void ApplyKnockback(Vector2 hitPoint)
+    {
+        if (rb == null)
+        {
+            return;
+        }
+
+        float directionX = transform.position.x >= hitPoint.x ? 1f : -1f;
+        Vector2 knockback = new Vector2(directionX * damageKnockbackForce.x, damageKnockbackForce.y);
+        rb.linearVelocity = Vector2.zero;
+        rb.AddForce(knockback, ForceMode2D.Impulse);
+    }
+
 
     public void TakeDamage(int damage = 1, bool shouldRespawn = true)
     {

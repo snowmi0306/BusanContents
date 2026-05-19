@@ -13,19 +13,18 @@ public class Spike : MonoBehaviour
 
     void OnTriggerStay2D(Collider2D collision)
     {
-        if (collision.CompareTag("Player") && player != null)
+        if (!collision.CompareTag("Player") || player == null)
         {
-            if (Time.time - lastDamageTime >= damageCooldown)
-            {
-<<<<<<< HEAD
-                player.TakeDamage(1, false);
-                player.TakeDamage(1);
-=======
-                Debug.Log("½ºÆÄÀÌÅ©¿¡ ´ê¾Ò½À´Ï´Ù!");
-                player.TakeDamage(1, false);
->>>>>>> 4522a40 (ê²Œì„ ìŠ¤í¬ë¦½íŠ¸ ìˆ˜ì •)
-                lastDamageTime = Time.time;
-            }
+            return;
         }
+
+        if (Time.time - lastDamageTime < damageCooldown)
+        {
+            return;
+        }
+
+        player.ApplyKnockback(transform.position);
+        player.TakeDamage(1, false);
+        lastDamageTime = Time.time;
     }
 }

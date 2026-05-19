@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class ClearSceneMenu : MonoBehaviour
+public class ClearMenu : MonoBehaviour
 {
     [Header("Scene Names")]
     [SerializeField] private string titleSceneName = "TitleScene";
