@@ -248,7 +248,7 @@ public class PlayController : MonoBehaviour
         };
     }
 
-    public void TakeDamage(int damage = 1)
+    public void TakeDamage(int damage = 1, bool shouldRespawn = true)
     {
         if (invincibleTimer > 0)
         {
@@ -266,7 +266,7 @@ public class PlayController : MonoBehaviour
         {
             RespawnAtStageStart();
         }
-        else
+        else if (shouldRespawn)
         {
             RespawnAtCheckpoint();
         }

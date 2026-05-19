@@ -17,7 +17,7 @@ public class Spike : MonoBehaviour
         {
             if (Time.time - lastDamageTime >= damageCooldown)
             {
-                Debug.Log("스파이크에 닿았습니다!");
+                player.TakeDamage(1, false);
                 player.TakeDamage(1);
                 lastDamageTime = Time.time;
             }
