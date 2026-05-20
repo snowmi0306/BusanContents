@@ -230,7 +230,7 @@ MonoBehaviour:
   invincibleDuration: 1
   damageKnockbackForce: {x: 6, y: 5}
   spineObjectName: Spine GameObject (dandi)
-  skeletonAnimation: {fileID: 0}
+  skeletonAnimation: {fileID: 5880254563487124741}
   idleAnimationName: dandi_idle
   walkAnimationName: dandi_walk
   jumpAnimationName: dandi_Jump

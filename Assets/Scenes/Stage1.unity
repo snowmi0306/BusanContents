@@ -3203,6 +3203,17 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1725641629}
   m_CullTransparentMesh: 1
+--- !u!114 &1773944012 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 5880254563487124741, guid: 83c1b02d3b0a20c4cb0829e4a8deeab7, type: 3}
+  m_PrefabInstance: {fileID: 5143162486498074796}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d247ba06193faa74d9335f5481b2b56c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: spine-unity::Spine.Unity.SkeletonAnimation
 --- !u!1001 &1780539753
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3949,26 +3960,14 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 3352780588858195702, guid: 83c1b02d3b0a20c4cb0829e4a8deeab7, type: 3}
-      propertyPath: orthographic size
-      value: 5.5
-      objectReference: {fileID: 0}
     - target: {fileID: 4549014241509277208, guid: 83c1b02d3b0a20c4cb0829e4a8deeab7, type: 3}
       propertyPath: m_Name
       value: Player
       objectReference: {fileID: 0}
     - target: {fileID: 7169202262275693422, guid: 83c1b02d3b0a20c4cb0829e4a8deeab7, type: 3}
-      propertyPath: moveSpeed
-      value: 7.7
-      objectReference: {fileID: 0}
-    - target: {fileID: 8137691218209018772, guid: 83c1b02d3b0a20c4cb0829e4a8deeab7, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8137691218209018772, guid: 83c1b02d3b0a20c4cb0829e4a8deeab7, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0
-      objectReference: {fileID: 0}
+      propertyPath: skeletonAnimation
+      value: 
+      objectReference: {fileID: 1773944012}
     - target: {fileID: 8689630086356420640, guid: 83c1b02d3b0a20c4cb0829e4a8deeab7, type: 3}
       propertyPath: m_Mesh
       value: 
