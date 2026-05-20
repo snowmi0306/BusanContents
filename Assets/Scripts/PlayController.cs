@@ -100,8 +100,6 @@ public class PlayController : MonoBehaviour
 
             currentStamina -= glideStaminaCost * Time.deltaTime;
             currentStamina = Mathf.Max(0, currentStamina);
-
-            Debug.Log(currentStamina.ToString("F2"));
         }
         else
         {
@@ -111,8 +109,6 @@ public class PlayController : MonoBehaviour
             {
                 currentStamina += staminaRegenRate * Time.deltaTime;
                 currentStamina = Mathf.Min(maxStamina, currentStamina);
-
-                //Debug.Log("Stamina : " + currentStamina.ToString("F2"));
             }
         }
 
@@ -265,7 +261,6 @@ public class PlayController : MonoBehaviour
         rb.AddForce(knockback, ForceMode2D.Impulse);
     }
 
-
     public void TakeDamage(int damage = 1, bool shouldRespawn = true)
     {
         if (invincibleTimer > 0)
@@ -280,9 +275,12 @@ public class PlayController : MonoBehaviour
 
         Debug.Log($"데미지! 남은 체력: {currentHealth}");
 
+        // 수정된 부분: 체력이 0이 되었을 때도 세이브 포인트에서 부활하도록 변경
         if (currentHealth <= 0)
         {
-            RespawnAtStageStart();
+            currentHealth = maxHealth; // 체력을 최대로 회복
+            RespawnAtCheckpoint();     // 체크포인트로 이동
+            Debug.Log("사망! 세이브 포인트에서 부활합니다.");
         }
         else if (shouldRespawn)
         {
@@ -291,7 +289,7 @@ public class PlayController : MonoBehaviour
     }
 
     /// <summary>
-    /// 체크포인트에서 리스폰 (체력 > 0)
+    /// 체크포인트에서 리스폰
     /// </summary>
     public void RespawnAtCheckpoint()
     {
@@ -304,7 +302,7 @@ public class PlayController : MonoBehaviour
     }
 
     /// <summary>
-    /// 스테이지 처음으로 리스폰 (체력 = 0)
+    /// 스테이지 처음으로 리스폰 (이제 기본 사망 시에는 호출되지 않지만, 완전 재시작 기능 등을 위해 남겨둠)
     /// </summary>
     public void RespawnAtStageStart()
     {
@@ -315,7 +313,7 @@ public class PlayController : MonoBehaviour
         rb.gravityScale = defaultGravityScale;
         spawnPoint = stageStartPoint;
 
-        Debug.Log("게임 오버! 스테이지 처음으로 리스폰: " + stageStartPoint);
+        Debug.Log("스테이지 처음으로 리스폰: " + stageStartPoint);
     }
 
     public void SetCheckpoint(Vector3 checkpointPos)

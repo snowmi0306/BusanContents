@@ -13,9 +13,11 @@ public class FishCakePickup : MonoBehaviour
         if (player == null)
             return;
 
-        bool healed = player.TryHeal(healAmount);
+        // 플레이어의 체력 회복을 시도합니다.
+        // (체력이 꽉 차 있다면 내부적으로 무시되지만 함수는 정상 실행됩니다)
+        player.TryHeal(healAmount);
 
-        if (healed)
-            Destroy(gameObject);
+        // 체력을 회복했든 안 했든 상관없이 아이템 오브젝트를 파괴합니다 (먹어짐 처리).
+        Destroy(gameObject);
     }
 }
