@@ -11,6 +11,8 @@ GameObject:
   - component: {fileID: 6075545087034074219}
   - component: {fileID: 2685474110701460080}
   - component: {fileID: 182241990195671328}
+  - component: {fileID: 2575250172915487136}
+  - component: {fileID: 1249855576471957673}
   m_Layer: 3
   m_Name: platform_roof_0
   m_TagString: Untagged
@@ -123,7 +125,7 @@ BoxCollider2D:
     serializedVersion: 2
     m_Bits: 4294967295
   m_IsTrigger: 0
-  m_UsedByEffector: 0
+  m_UsedByEffector: 1
   m_CompositeOperation: 0
   m_CompositeOrder: 0
   m_Offset: {x: 0, y: -0.08156812}
@@ -138,3 +140,34 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 3.53, y: 1.1768638}
   m_EdgeRadius: 0
+--- !u!251 &2575250172915487136
+PlatformEffector2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 958398554406901100}
+  m_Enabled: 1
+  m_UseColliderMask: 1
+  m_ColliderMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_RotationalOffset: 0
+  m_UseOneWay: 1
+  m_UseOneWayGrouping: 0
+  m_SurfaceArc: 180
+  m_UseSideFriction: 0
+  m_UseSideBounce: 0
+  m_SideArc: 1
+--- !u!114 &1249855576471957673
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 958398554406901100}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 43f92bc961ae50840994b88f70148114, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MovingPlatform
