@@ -51,6 +51,8 @@ public class PlayController : MonoBehaviour
     private float invincibleTimer = 0f;
     private Vector3 spawnPoint;
     private Vector3 stageStartPoint;
+    private float moveInput;
+    private bool jumpRequested;
 
     void Start()
     {
@@ -70,49 +72,100 @@ public class PlayController : MonoBehaviour
 
     void Update()
     {
+        UpdateInvincibilityTimer();
+        moveInput = ReadMoveInput();
+        FlipSpine(moveInput);
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            jumpRequested = true;
+        }
+
+        bool isGliding = IsGliding();
+        UpdateSpineAnimation(moveInput, isGliding);
+    }
+
+    private void FixedUpdate()
+    {
+        UpdateGroundedState();
+        HandleHorizontalMovement(moveInput);
+        HandleJumpInput();
+        bool isGliding = IsGliding();
+        HandleGravityAndStamina(isGliding);
+    }
+
+    private void UpdateInvincibilityTimer()
+    {
         if (invincibleTimer > 0)
         {
             invincibleTimer -= Time.deltaTime;
         }
+    }
 
-        float moveInput = Input.GetAxis("Horizontal");
+    private float ReadMoveInput()
+    {
+        return Input.GetAxis("Horizontal");
+    }
+
+    private void HandleHorizontalMovement(float moveInput)
+    {
         rb.linearVelocity = new Vector2(moveInput * moveSpeed, rb.linearVelocity.y);
+    }
 
-        FlipSpine(moveInput);
-
+    private void UpdateGroundedState()
+    {
         isGrounded = CheckGrounded();
 
         if (isGrounded)
         {
             lastGroundTime = Time.time;
         }
+    }
 
-        if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
+    private void HandleJumpInput()
+    {
+        if (!jumpRequested)
+        {
+            return;
+        }
+
+        if (isGrounded)
         {
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
         }
 
-        bool isGliding = Input.GetKey(KeyCode.Space) && !isGrounded && rb.linearVelocity.y < 0 && currentStamina > 0;
+        jumpRequested = false;
+    }
 
+    private bool IsGliding()
+    {
+        return Input.GetKey(KeyCode.Space) && !isGrounded && rb.linearVelocity.y < 0 && currentStamina > 0;
+    }
+
+    private void HandleGravityAndStamina(bool isGliding)
+    {
         if (isGliding)
         {
             rb.gravityScale = glideGravity;
-
-            currentStamina -= glideStaminaCost * Time.deltaTime;
-            currentStamina = Mathf.Max(0, currentStamina);
+            ConsumeStamina(glideStaminaCost * Time.fixedDeltaTime);
+            return;
         }
-        else
+
+        rb.gravityScale = defaultGravityScale;
+
+        if (isGrounded)
         {
-            rb.gravityScale = defaultGravityScale;
-
-            if (isGrounded)
-            {
-                currentStamina += staminaRegenRate * Time.deltaTime;
-                currentStamina = Mathf.Min(maxStamina, currentStamina);
-            }
+            RecoverStaminaInternal(staminaRegenRate * Time.fixedDeltaTime);
         }
+    }
 
-        UpdateSpineAnimation(moveInput, isGliding);
+    private void ConsumeStamina(float amount)
+    {
+        currentStamina = Mathf.Max(0, currentStamina - amount);
+    }
+
+    private void RecoverStaminaInternal(float amount)
+    {
+        currentStamina = Mathf.Min(maxStamina, currentStamina + amount);
     }
 
     private void AssignGroundCheckIfNeeded()

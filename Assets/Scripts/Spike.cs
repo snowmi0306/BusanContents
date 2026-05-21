@@ -2,18 +2,13 @@ using UnityEngine;
 
 public class Spike : MonoBehaviour
 {
-    private PlayController player;
-    private float damageCooldown = 0.5f;
+    [SerializeField] private int damageAmount = 1;
+    [SerializeField] private float damageCooldown = 0.5f;
     private float lastDamageTime = -1f;
-
-    void Start()
-    {
-        player = FindObjectOfType<PlayController>();
-    }
 
     void OnTriggerStay2D(Collider2D collision)
     {
-        if (!collision.CompareTag("Player") || player == null)
+        if (!collision.CompareTag("Player"))
         {
             return;
         }
@@ -23,8 +18,14 @@ public class Spike : MonoBehaviour
             return;
         }
 
+        PlayController player = collision.GetComponent<PlayController>();
+        if (player == null)
+        {
+            return;
+        }
+
         player.ApplyKnockback(transform.position);
-        player.TakeDamage(1, false);
+        player.TakeDamage(damageAmount, false);
         lastDamageTime = Time.time;
     }
 }
