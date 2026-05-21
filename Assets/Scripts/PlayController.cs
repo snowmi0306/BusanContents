@@ -15,6 +15,7 @@ public class PlayController : MonoBehaviour
     public Transform groundCheck;
     public float groundCheckRadius = 0.2f;
     public float groundCheckWidthPadding = 0.02f;
+    public float groundedGraceTime = 0.08f;
     public LayerMask groundLayer;
 
     [Header("Stamina")]
@@ -83,12 +84,15 @@ public class PlayController : MonoBehaviour
 
         FlipSpine(moveInput);
 
-        if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
+        bool canJump = isGrounded || (Time.time - lastGroundTime) <= groundedGraceTime;
+
+        if (Input.GetKeyDown(KeyCode.Space) && canJump)
         {
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
         }
 
-        bool isGliding = Input.GetKey(KeyCode.Space) && !isGrounded && rb.linearVelocity.y < 0 && currentStamina > 0;
+        bool isRecentlyGrounded = (Time.time - lastGroundTime) <= groundedGraceTime;
+        bool isGliding = Input.GetKey(KeyCode.Space) && !isRecentlyGrounded && rb.linearVelocity.y < 0 && currentStamina > 0;
 
         UpdateSpineAnimation(moveInput, isGliding);
     }
@@ -103,7 +107,8 @@ public class PlayController : MonoBehaviour
             lastGroundTime = Time.time;
         }
 
-        bool isGliding = Input.GetKey(KeyCode.Space) && !isGrounded && rb.linearVelocity.y < 0 && currentStamina > 0;
+        bool isRecentlyGrounded = (Time.time - lastGroundTime) <= groundedGraceTime;
+        bool isGliding = Input.GetKey(KeyCode.Space) && !isRecentlyGrounded && rb.linearVelocity.y < 0 && currentStamina > 0;
 
         if (isGliding)
         {
@@ -160,9 +165,9 @@ public class PlayController : MonoBehaviour
 
     private bool CheckGrounded()
     {
-        if (playerCollider != null)
+        if (playerCollider is BoxCollider2D boxCollider)
         {
-            Bounds bounds = playerCollider.bounds;
+            Bounds bounds = boxCollider.bounds;
             float boxWidth = Mathf.Max(0.01f, bounds.size.x - groundCheckWidthPadding);
             Vector2 boxSize = new Vector2(boxWidth, groundCheckRadius);
             Vector2 boxCenter = new Vector2(bounds.center.x, bounds.min.y - groundCheckRadius * 0.5f);
