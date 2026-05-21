@@ -14,6 +14,8 @@ public class PlayController : MonoBehaviour
     [Header("Ground Check")]
     public Transform groundCheck;
     public float groundCheckRadius = 0.2f;
+    public float groundCheckWidthPadding = 0.02f;
+    public float groundedGraceTime = 0.08f;
     public LayerMask groundLayer;
 
     [Header("Stamina")]
@@ -59,6 +61,8 @@ public class PlayController : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         playerCollider = GetComponent<Collider2D>();
         defaultGravityScale = rb.gravityScale;
+        rb.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
+        rb.interpolation = RigidbodyInterpolation2D.Interpolate;
         AssignGroundCheckIfNeeded();
         AssignSkeletonAnimationIfNeeded();
 
@@ -80,6 +84,22 @@ public class PlayController : MonoBehaviour
 
         FlipSpine(moveInput);
 
+        bool canJump = isGrounded || (Time.time - lastGroundTime) <= groundedGraceTime;
+
+        if (Input.GetKeyDown(KeyCode.Space) && canJump)
+        {
+            rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
+        }
+
+        bool isRecentlyGrounded = (Time.time - lastGroundTime) <= groundedGraceTime;
+        bool isGliding = Input.GetKey(KeyCode.Space) && !isRecentlyGrounded && rb.linearVelocity.y < 0 && currentStamina > 0;
+
+        UpdateSpineAnimation(moveInput, isGliding);
+    }
+
+
+    void FixedUpdate()
+    {
         isGrounded = CheckGrounded();
 
         if (isGrounded)
@@ -87,34 +107,26 @@ public class PlayController : MonoBehaviour
             lastGroundTime = Time.time;
         }
 
-        if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
-        {
-            rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
-        }
-
-        bool isGliding = Input.GetKey(KeyCode.Space) && !isGrounded && rb.linearVelocity.y < 0 && currentStamina > 0;
+        bool isRecentlyGrounded = (Time.time - lastGroundTime) <= groundedGraceTime;
+        bool isGliding = Input.GetKey(KeyCode.Space) && !isRecentlyGrounded && rb.linearVelocity.y < 0 && currentStamina > 0;
 
         if (isGliding)
         {
             rb.gravityScale = glideGravity;
 
-            currentStamina -= glideStaminaCost * Time.deltaTime;
+            currentStamina -= glideStaminaCost * Time.fixedDeltaTime;
             currentStamina = Mathf.Max(0, currentStamina);
+            return;
         }
-        else
+
+        rb.gravityScale = defaultGravityScale;
+
+        if (isGrounded)
         {
-            rb.gravityScale = defaultGravityScale;
-
-            if (isGrounded)
-            {
-                currentStamina += staminaRegenRate * Time.deltaTime;
-                currentStamina = Mathf.Min(maxStamina, currentStamina);
-            }
+            currentStamina += staminaRegenRate * Time.fixedDeltaTime;
+            currentStamina = Mathf.Min(maxStamina, currentStamina);
         }
-
-        UpdateSpineAnimation(moveInput, isGliding);
     }
-
     private void AssignGroundCheckIfNeeded()
     {
         if (groundCheck != null && groundCheck.IsChildOf(transform))
@@ -153,6 +165,16 @@ public class PlayController : MonoBehaviour
 
     private bool CheckGrounded()
     {
+        if (playerCollider is BoxCollider2D boxCollider)
+        {
+            Bounds bounds = boxCollider.bounds;
+            float boxWidth = Mathf.Max(0.01f, bounds.size.x - groundCheckWidthPadding);
+            Vector2 boxSize = new Vector2(boxWidth, groundCheckRadius);
+            Vector2 boxCenter = new Vector2(bounds.center.x, bounds.min.y - groundCheckRadius * 0.5f);
+
+            return Physics2D.OverlapBox(boxCenter, boxSize, 0f, groundLayer) != null;
+        }
+
         Vector2 checkPosition = GetGroundCheckPosition();
         return Physics2D.OverlapCircle(checkPosition, groundCheckRadius, groundLayer) != null;
     }
