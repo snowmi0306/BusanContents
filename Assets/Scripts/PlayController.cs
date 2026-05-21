@@ -70,49 +70,83 @@ public class PlayController : MonoBehaviour
 
     void Update()
     {
+        UpdateInvincibilityTimer();
+        float moveInput = ReadMoveInput();
+        HandleHorizontalMovement(moveInput);
+        FlipSpine(moveInput);
+        UpdateGroundedState();
+        HandleJumpInput();
+        bool isGliding = IsGliding();
+        HandleGravityAndStamina(isGliding);
+        UpdateSpineAnimation(moveInput, isGliding);
+    }
+
+    private void UpdateInvincibilityTimer()
+    {
         if (invincibleTimer > 0)
         {
             invincibleTimer -= Time.deltaTime;
         }
+    }
 
-        float moveInput = Input.GetAxis("Horizontal");
+    private float ReadMoveInput()
+    {
+        return Input.GetAxis("Horizontal");
+    }
+
+    private void HandleHorizontalMovement(float moveInput)
+    {
         rb.linearVelocity = new Vector2(moveInput * moveSpeed, rb.linearVelocity.y);
+    }
 
-        FlipSpine(moveInput);
-
+    private void UpdateGroundedState()
+    {
         isGrounded = CheckGrounded();
 
         if (isGrounded)
         {
             lastGroundTime = Time.time;
         }
+    }
 
+    private void HandleJumpInput()
+    {
         if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
         {
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
         }
+    }
 
-        bool isGliding = Input.GetKey(KeyCode.Space) && !isGrounded && rb.linearVelocity.y < 0 && currentStamina > 0;
+    private bool IsGliding()
+    {
+        return Input.GetKey(KeyCode.Space) && !isGrounded && rb.linearVelocity.y < 0 && currentStamina > 0;
+    }
 
+    private void HandleGravityAndStamina(bool isGliding)
+    {
         if (isGliding)
         {
             rb.gravityScale = glideGravity;
-
-            currentStamina -= glideStaminaCost * Time.deltaTime;
-            currentStamina = Mathf.Max(0, currentStamina);
+            ConsumeStamina(glideStaminaCost * Time.deltaTime);
+            return;
         }
-        else
+
+        rb.gravityScale = defaultGravityScale;
+
+        if (isGrounded)
         {
-            rb.gravityScale = defaultGravityScale;
-
-            if (isGrounded)
-            {
-                currentStamina += staminaRegenRate * Time.deltaTime;
-                currentStamina = Mathf.Min(maxStamina, currentStamina);
-            }
+            RecoverStamina(staminaRegenRate * Time.deltaTime);
         }
+    }
 
-        UpdateSpineAnimation(moveInput, isGliding);
+    private void ConsumeStamina(float amount)
+    {
+        currentStamina = Mathf.Max(0, currentStamina - amount);
+    }
+
+    private void RecoverStamina(float amount)
+    {
+        currentStamina = Mathf.Min(maxStamina, currentStamina + amount);
     }
 
     private void AssignGroundCheckIfNeeded()
