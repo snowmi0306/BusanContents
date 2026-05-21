@@ -42,7 +42,7 @@ EdgeCollider2D:
   m_Enabled: 1
   serializedVersion: 3
   m_Density: 1
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 6200000, guid: fe85b885422d7bf4a83b37e0e5f086e0, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -69,8 +69,8 @@ EdgeCollider2D:
   m_Offset: {x: 0, y: 0}
   m_EdgeRadius: 0
   m_Points:
-  - {x: -2.4705591, y: -1.8852537}
-  - {x: 1.5407281, y: 0.929831}
+  - {x: -2.8688567, y: -1.8403751}
+  - {x: 2.4775693, y: 0.7559266}
   m_AdjacentStartPoint: {x: 0, y: 0}
   m_AdjacentEndPoint: {x: 0, y: 0}
   m_UseAdjacentStartPoint: 0
@@ -85,7 +85,7 @@ GameObject:
   m_Component:
   - component: {fileID: 7104241520031524596}
   - component: {fileID: 2400857224588304168}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: platform_stairs_0
   m_TagString: Untagged
   m_Icon: {fileID: 0}

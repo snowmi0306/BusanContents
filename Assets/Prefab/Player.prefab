@@ -42,7 +42,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1226126525420048728}
   - component: {fileID: 2886492053311643805}
-  - component: {fileID: 2128476591356010134}
   - component: {fileID: 1971010991023316979}
   - component: {fileID: 7169202262275693422}
   - component: {fileID: 9079063820011679731}
@@ -130,33 +129,6 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 0
   m_SpriteSortPoint: 0
---- !u!50 &2128476591356010134
-Rigidbody2D:
-  serializedVersion: 5
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4549014241509277208}
-  m_BodyType: 0
-  m_Simulated: 1
-  m_UseFullKinematicContacts: 0
-  m_UseAutoMass: 0
-  m_Mass: 1
-  m_LinearDamping: 0
-  m_AngularDamping: 0.05
-  m_GravityScale: 1
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_Interpolate: 0
-  m_SleepingMode: 1
-  m_CollisionDetection: 0
-  m_Constraints: 4
 --- !u!61 &1971010991023316979
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -220,6 +192,8 @@ MonoBehaviour:
   glideGravity: 0.5
   groundCheck: {fileID: 8671911191967790075}
   groundCheckRadius: 0.2
+  groundCheckWidthPadding: 0.02
+  groundedGraceTime: 0.08
   groundLayer:
     serializedVersion: 2
     m_Bits: 8
@@ -430,7 +404,7 @@ MonoBehaviour:
   rootMotionScaleRotation: 1
   rootMotionTranslateXPerY: 0
   rootMotionTranslateYPerX: 0
-  rigidBody2D: {fileID: 2128476591356010134}
+  rigidBody2D: {fileID: 0}
   applyRigidbody2DGravity: 1
   rigidBody: {fileID: 0}
   disableOnOverride: 1

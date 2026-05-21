@@ -5182,6 +5182,11 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 343c39feeeedcfb439f7f736c733dc44, type: 3}
+--- !u!1 &971930805 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4549014241509277208, guid: 83c1b02d3b0a20c4cb0829e4a8deeab7, type: 3}
+  m_PrefabInstance: {fileID: 5143162486498074796}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &989185034
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -9210,6 +9215,33 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 1226126525420048728, guid: 83c1b02d3b0a20c4cb0829e4a8deeab7, type: 3}
   m_PrefabInstance: {fileID: 5143162486498074796}
   m_PrefabAsset: {fileID: 0}
+--- !u!50 &1826319417
+Rigidbody2D:
+  serializedVersion: 5
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 971930805}
+  m_BodyType: 0
+  m_Simulated: 1
+  m_UseFullKinematicContacts: 0
+  m_UseAutoMass: 0
+  m_Mass: 1
+  m_LinearDamping: 0
+  m_AngularDamping: 0.05
+  m_GravityScale: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 8
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 128
+  m_Interpolate: 0
+  m_SleepingMode: 1
+  m_CollisionDetection: 0
+  m_Constraints: 4
 --- !u!1001 &1842535779
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -10785,6 +10817,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 1971010991023316979, guid: 83c1b02d3b0a20c4cb0829e4a8deeab7, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 4549014241509277208, guid: 83c1b02d3b0a20c4cb0829e4a8deeab7, type: 3}
       propertyPath: m_Name
       value: Player
@@ -10794,6 +10830,14 @@ PrefabInstance:
       value: 6.3
       objectReference: {fileID: 0}
     - target: {fileID: 7169202262275693422, guid: 83c1b02d3b0a20c4cb0829e4a8deeab7, type: 3}
+      propertyPath: groundCheckRadius
+      value: 0.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 7169202262275693422, guid: 83c1b02d3b0a20c4cb0829e4a8deeab7, type: 3}
+      propertyPath: groundedGraceTime
+      value: 0.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7169202262275693422, guid: 83c1b02d3b0a20c4cb0829e4a8deeab7, type: 3}
       propertyPath: skeletonAnimation
       value: 
       objectReference: {fileID: 1773944012}
@@ -10801,10 +10845,17 @@ PrefabInstance:
       propertyPath: m_Mesh
       value: 
       objectReference: {fileID: 0}
+    - target: {fileID: 9079063820011679731, guid: 83c1b02d3b0a20c4cb0829e4a8deeab7, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 4549014241509277208, guid: 83c1b02d3b0a20c4cb0829e4a8deeab7, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1826319417}
   m_SourcePrefab: {fileID: 100100000, guid: 83c1b02d3b0a20c4cb0829e4a8deeab7, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
@@ -10812,9 +10863,9 @@ SceneRoots:
   m_Roots:
   - {fileID: 804263748}
   - {fileID: 410836814}
+  - {fileID: 5143162486498074796}
   - {fileID: 59918385}
   - {fileID: 1478829471}
-  - {fileID: 5143162486498074796}
   - {fileID: 493824921}
   - {fileID: 806070508}
   - {fileID: 1414446865}
