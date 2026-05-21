@@ -83,13 +83,6 @@ public class PlayController : MonoBehaviour
 
         FlipSpine(moveInput);
 
-        isGrounded = CheckGrounded();
-
-        if (isGrounded)
-        {
-            lastGroundTime = Time.time;
-        }
-
         if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
         {
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
@@ -103,6 +96,13 @@ public class PlayController : MonoBehaviour
 
     void FixedUpdate()
     {
+        isGrounded = CheckGrounded();
+
+        if (isGrounded)
+        {
+            lastGroundTime = Time.time;
+        }
+
         bool isGliding = Input.GetKey(KeyCode.Space) && !isGrounded && rb.linearVelocity.y < 0 && currentStamina > 0;
 
         if (isGliding)
