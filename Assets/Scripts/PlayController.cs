@@ -91,6 +91,14 @@ public class PlayController : MonoBehaviour
         HandleJumpInput();
         bool isGliding = IsGliding();
         HandleGravityAndStamina(isGliding);
+        float moveInput = ReadMoveInput();
+        HandleHorizontalMovement(moveInput);
+        FlipSpine(moveInput);
+        UpdateGroundedState();
+        HandleJumpInput();
+        bool isGliding = IsGliding();
+        HandleGravityAndStamina(isGliding);
+        UpdateSpineAnimation(moveInput, isGliding);
     }
 
     private void UpdateInvincibilityTimer()
@@ -129,9 +137,14 @@ public class PlayController : MonoBehaviour
         }
 
         if (isGrounded)
+
+    private void HandleJumpInput()
+    {
+        if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
         {
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
         }
+    }
 
         jumpRequested = false;
     }
@@ -147,6 +160,7 @@ public class PlayController : MonoBehaviour
         {
             rb.gravityScale = glideGravity;
             ConsumeStamina(glideStaminaCost * Time.fixedDeltaTime);
+            ConsumeStamina(glideStaminaCost * Time.deltaTime);
             return;
         }
 
@@ -155,6 +169,7 @@ public class PlayController : MonoBehaviour
         if (isGrounded)
         {
             RecoverStaminaInternal(staminaRegenRate * Time.fixedDeltaTime);
+            RecoverStamina(staminaRegenRate * Time.deltaTime);
         }
     }
 
@@ -164,6 +179,7 @@ public class PlayController : MonoBehaviour
     }
 
     private void RecoverStaminaInternal(float amount)
+    private void RecoverStamina(float amount)
     {
         currentStamina = Mathf.Min(maxStamina, currentStamina + amount);
     }
