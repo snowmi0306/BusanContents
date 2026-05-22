@@ -1862,6 +1862,7 @@ GameObject:
   - component: {fileID: 410836813}
   - component: {fileID: 410836812}
   - component: {fileID: 410836811}
+  - component: {fileID: 410836815}
   m_Layer: 5
   m_Name: Canvas
   m_TagString: Untagged
@@ -1953,6 +1954,30 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
+--- !u!114 &410836815
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 410836810}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6259e923cb2f307488d5cbc3df040155, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UI
+  player: {fileID: 1826319419}
+  heartImages:
+  - {fileID: 1098148726}
+  - {fileID: 1725641631}
+  - {fileID: 449110416}
+  fullHeartSprite: {fileID: 872317334273715103, guid: 577d8545899e9ce40be69f26b381b109, type: 3}
+  emptyHeartSprite: {fileID: -995616824291215981, guid: 06d1433d5b1b70e448039cbb4dff60db, type: 3}
+  staminaSlider: {fileID: 41589893}
+  staminaText: {fileID: 0}
+  consumeFromRight: 1
+  fullHeartColor: {r: 1, g: 1, b: 1, a: 1}
+  emptyHeartColor: {r: 1, g: 1, b: 1, a: 0.2}
 --- !u!1001 &422625721
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2988,6 +3013,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1576117183983146137, guid: 343c39feeeedcfb439f7f736c733dc44, type: 3}
+      propertyPath: m_Material
+      value: 
+      objectReference: {fileID: 0}
     - target: {fileID: 6817315434148101815, guid: 343c39feeeedcfb439f7f736c733dc44, type: 3}
       propertyPath: m_Name
       value: platform_stone_long_0 (28)
@@ -3102,6 +3131,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1576117183983146137, guid: 343c39feeeedcfb439f7f736c733dc44, type: 3}
+      propertyPath: m_Material
+      value: 
+      objectReference: {fileID: 0}
     - target: {fileID: 6817315434148101815, guid: 343c39feeeedcfb439f7f736c733dc44, type: 3}
       propertyPath: m_Name
       value: platform_stone_long_0 (29)
@@ -5285,6 +5318,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1576117183983146137, guid: 343c39feeeedcfb439f7f736c733dc44, type: 3}
+      propertyPath: m_Material
+      value: 
+      objectReference: {fileID: 0}
     - target: {fileID: 6817315434148101815, guid: 343c39feeeedcfb439f7f736c733dc44, type: 3}
       propertyPath: m_Name
       value: platform_stone_long_0 (30)
@@ -8251,6 +8288,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1576117183983146137, guid: 343c39feeeedcfb439f7f736c733dc44, type: 3}
+      propertyPath: m_Material
+      value: 
+      objectReference: {fileID: 0}
     - target: {fileID: 6817315434148101815, guid: 343c39feeeedcfb439f7f736c733dc44, type: 3}
       propertyPath: m_Name
       value: platform_stone_long_0 (31)
@@ -9061,6 +9102,17 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 4
+--- !u!114 &1826319419 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7169202262275693422, guid: 83c1b02d3b0a20c4cb0829e4a8deeab7, type: 3}
+  m_PrefabInstance: {fileID: 5143162486498074796}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 971930805}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1f4b7ac7734002d44aea703496e8cc07, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayController
 --- !u!1001 &1842535779
 PrefabInstance:
   m_ObjectHideFlags: 0

@@ -23,8 +23,7 @@ public class Spike : MonoBehaviour
             return;
         }
 
-        player.ApplyKnockback(transform.position);
-        player.TakeDamage(1, false);
+        player.OnObstacleHit(transform.position);
         lastDamageTime = Time.time;
     }
 }

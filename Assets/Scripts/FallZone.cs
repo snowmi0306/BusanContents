@@ -14,7 +14,7 @@ public class FallZone : MonoBehaviour
         if (collision.CompareTag("Player") && player != null)
         {
             Debug.Log("¶³¾îÁü!");
-            player.TakeDamage(1);
+            player.OnFallZoneHit(); ;
         }
     }
 }

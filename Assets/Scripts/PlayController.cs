@@ -310,6 +310,17 @@ public class PlayController : MonoBehaviour
         }
     }
 
+    public void OnObstacleHit(Vector2 hitPoint)
+    {
+        ApplyKnockback(hitPoint);
+        TakeDamage(1, false);
+    }
+
+    public void OnFallZoneHit()
+    {
+        TakeDamage(1, true);
+    }
+
     /// <summary>
     /// 체크포인트에서 리스폰
     /// </summary>
@@ -348,6 +359,18 @@ public class PlayController : MonoBehaviour
     {
         return currentHealth;
     }
+
+    public int GetMaxHealth()
+    {
+        return maxHealth;
+    }
+
+    public float GetMaxStamina()
+    {
+        return maxStamina;
+    }
+
+
 
     public bool IsInvincible()
     {
