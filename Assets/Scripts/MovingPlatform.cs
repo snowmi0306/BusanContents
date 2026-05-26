@@ -2,24 +2,28 @@ using UnityEngine;
 
 public class MovingPlatform : MonoBehaviour
 {
-    // 플레이어가 발판 위에 올라왔을 때
-    private void OnCollisionEnter2D(Collision2D collision)
+    // 충돌이 '유지'되고 있을 때도 계속 부모를 체크해 줍니다.
+    private void OnCollisionStay2D(Collision2D collision)
     {
-        // 충돌한 오브젝트의 태그가 "Player"인지 확인
         if (collision.gameObject.CompareTag("Player"))
         {
-            // 플레이어의 부모를 이 발판(transform)으로 설정합니다.
-            collision.transform.SetParent(transform);
+            // 플레이어가 발판보다 위쪽에 있을 때만 자식으로 삼음 (벽에 부딪힐 때 자식되는 것 방지)
+            if (collision.transform.position.y > transform.position.y)
+            {
+                collision.transform.SetParent(transform);
+            }
         }
     }
 
-    // 플레이어가 발판에서 점프하거나 벗어났을 때
     private void OnCollisionExit2D(Collision2D collision)
     {
         if (collision.gameObject.CompareTag("Player"))
         {
-            // 부모 관계를 끊어줍니다. (원래대로 독립)
-            collision.transform.SetParent(null);
+            // 부모 관계를 안전하게 해제
+            if (collision.transform.parent == transform)
+            {
+                collision.transform.SetParent(null);
+            }
         }
     }
 }

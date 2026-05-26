@@ -48,6 +48,7 @@ public class PlayController : MonoBehaviour
     private float lastGroundTime;
     private float defaultGravityScale;
     private string currentBaseAnimationName;
+    private MovingPlatform2D currentPlatform;
 
     private int currentHealth;
     private float invincibleTimer = 0f;
@@ -80,7 +81,8 @@ public class PlayController : MonoBehaviour
         }
 
         float moveInput = Input.GetAxis("Horizontal");
-        rb.linearVelocity = new Vector2(moveInput * moveSpeed, rb.linearVelocity.y);
+        float platformVelocityX = currentPlatform != null ? currentPlatform.Velocity.x : 0f;
+        rb.linearVelocity = new Vector2(moveInput * moveSpeed + platformVelocityX, rb.linearVelocity.y);
 
         FlipSpine(moveInput);
 
@@ -400,5 +402,30 @@ public class PlayController : MonoBehaviour
 
         currentHealth = Mathf.Min(currentHealth + amount, maxHealth);
         return true;
+    }
+
+    private void OnCollisionStay2D(Collision2D collision)
+    {
+        if (!collision.gameObject.TryGetComponent(out MovingPlatform2D movingPlatform))
+        {
+            return;
+        }
+
+        foreach (var contact in collision.contacts)
+        {
+            if (contact.normal.y > 0.2f)
+            {
+                currentPlatform = movingPlatform;
+                return;
+            }
+        }
+    }
+
+    private void OnCollisionExit2D(Collision2D collision)
+    {
+        if (currentPlatform != null && collision.gameObject == currentPlatform.gameObject)
+        {
+            currentPlatform = null;
+        }
     }
 }

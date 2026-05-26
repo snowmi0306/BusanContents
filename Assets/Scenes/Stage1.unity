@@ -2332,6 +2332,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: platform_roof_0 (1)
       objectReference: {fileID: 0}
+    - target: {fileID: 958398554406901100, guid: 543d7034edc3e3e429fc8b7bd588da92, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 3666192721118354061, guid: 543d7034edc3e3e429fc8b7bd588da92, type: 3}
       propertyPath: m_Enabled
       value: 1
@@ -5632,7 +5636,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6075545087034074219, guid: 543d7034edc3e3e429fc8b7bd588da92, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -11.96
+      value: -8.23
       objectReference: {fileID: 0}
     - target: {fileID: 6075545087034074219, guid: 543d7034edc3e3e429fc8b7bd588da92, type: 3}
       propertyPath: m_LocalPosition.y
