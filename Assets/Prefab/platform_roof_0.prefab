@@ -291,7 +291,6 @@ MonoBehaviour:
   m_GameObject: {fileID: 5941891362556124480}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 25c0a8cf479e62d42ba3ebdb25f1a9ce, type: 3}
+  m_Script: {fileID: 11500000, guid: 223f997bf7862dc459835c0d779bce16, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MovingPlatformPassengerZone
-  platformRoot: {fileID: 6075545087034074219}

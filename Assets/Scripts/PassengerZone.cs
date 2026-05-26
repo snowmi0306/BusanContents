@@ -1,15 +1,20 @@
 using UnityEngine;
 
-public class MovingPlatform : MonoBehaviour
+public class PassengerZone : MonoBehaviour
 {
     // 플레이어가 발판 위에 올라왔을 때
-    private void OnCollisionEnter2D(Collision2D collision)
+    private void OnCollisionStay2D(Collision2D collision)
     {
-        // 충돌한 오브젝트의 태그가 "Player"인지 확인
-        if (collision.gameObject.CompareTag("Player"))
+        if (!collision.gameObject.CompareTag("Player")) return;
+
+        foreach (var c in collision.contacts)
         {
-            // 플레이어의 부모를 이 발판(transform)으로 설정합니다.
-            collision.transform.SetParent(transform);
+            // 플레이어가 발판 위에 있을 때(플랫폼 입장에서 위쪽으로 힘 받음)
+            if (c.normal.y < -0.2f)
+            {
+                collision.transform.SetParent(transform);
+                return;
+            }
         }
     }
 
