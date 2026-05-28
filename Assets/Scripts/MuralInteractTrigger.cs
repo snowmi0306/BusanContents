@@ -13,6 +13,10 @@ public class MuralInteractTrigger : MonoBehaviour
     [SerializeField, Min(0)] private int lettersToConsume = 3;
     [SerializeField] private UnityEvent onLettersRequirementMet;
 
+    [Header("Background Toggle")]
+    [SerializeField] private GameObject defaultBackground;
+    [SerializeField] private GameObject muralBackground;
+
     [Header("Interact Hint Transparency")]
     [SerializeField, Range(0f, 1f)] private float defaultInteractHintAlpha = 1f;
     [SerializeField, Range(0f, 1f)] private float notEnoughInteractHintAlpha = 0.5f;
@@ -26,6 +30,7 @@ public class MuralInteractTrigger : MonoBehaviour
         SetHintActive(interactHint, false);
         SetHintActive(notEnoughLetterHint, false);
         SetHintTransparency(interactHint, defaultInteractHintAlpha);
+        SetInitialBackgroundState();
     }
 
     private void Update()
@@ -42,7 +47,7 @@ public class MuralInteractTrigger : MonoBehaviour
 
         if (!currentPlayerInventory.HasRequiredLetters())
         {
-            Debug.Log("ÆíÁö ¾ÆÀÌÄÜ ºÎÁ·");
+            Debug.Log("ë²½í™” ì¡°ê±´ ë¶ˆì¶©ì¡±");
             ShowNotEnoughLetterHint();
             return;
         }
@@ -54,7 +59,7 @@ public class MuralInteractTrigger : MonoBehaviour
 
             if (!consumed)
             {
-                Debug.Log("ÆíÁö ¾ÆÀÌÄÜ ºÎÁ·");
+                Debug.Log("ë²½í™” ì¡°ê±´ ë¶ˆì¶©ì¡±");
                 ShowNotEnoughLetterHint();
                 return;
             }
@@ -63,8 +68,9 @@ public class MuralInteractTrigger : MonoBehaviour
         SetHintActive(interactHint, false);
         SetHintTransparency(interactHint, defaultInteractHintAlpha);
 
+        ActivateMuralBackground();
         onLettersRequirementMet?.Invoke();
-        Debug.Log("ÆíÁö Á¶°Ç ÃæÁ·: º®È­ »óÈ£ÀÛ¿ë °¡´É");
+        Debug.Log("ë²½í™” ì¡°ê±´ ì¶©ì¡±: ë²½í™” ìƒí˜¸ì‘ìš© ì™„ë£Œ");
     }
 
     private void OnTriggerEnter2D(Collider2D other)
@@ -131,7 +137,7 @@ public class MuralInteractTrigger : MonoBehaviour
     {
         SetHintActive(notEnoughLetterHint, true);
 
-        // ÆíÁö ºÎÁ· ½Ã Interact Hint¸¦ 50% Åõ¸íÇÏ°Ô
+        // ì¡°ê±´ ë¶ˆì¶©ì¡± ì‹œ Interact Hintë¥¼ ë°˜íˆ¬ëª…í•˜ê²Œ ì²˜ë¦¬
         SetHintTransparency(interactHint, notEnoughInteractHintAlpha);
 
         float duration = Mathf.Max(0f, notEnoughHintDuration);
@@ -143,7 +149,7 @@ public class MuralInteractTrigger : MonoBehaviour
 
         SetHintActive(notEnoughLetterHint, false);
 
-        // ÀÏÁ¤ ½Ã°£ ÈÄ ´Ù½Ã ¿ø·¡ Åõ¸íµµ·Î º¹±¸
+        // ì¼ì • ì‹œê°„ í›„ ë‹¤ì‹œ ê¸°ë³¸ íˆ¬ëª…ë„ë¡œ ë³µì›
         SetHintTransparency(interactHint, defaultInteractHintAlpha);
 
         notEnoughHintRoutine = null;
@@ -168,7 +174,7 @@ public class MuralInteractTrigger : MonoBehaviour
 
         alpha = Mathf.Clamp01(alpha);
 
-        // UI Image, Text µî¿¡ Àû¿ë
+        // UI Image, Text ë“±ì— ì ìš©
         Graphic[] graphics = target.GetComponentsInChildren<Graphic>(true);
         foreach (Graphic graphic in graphics)
         {
@@ -177,13 +183,39 @@ public class MuralInteractTrigger : MonoBehaviour
             graphic.color = color;
         }
 
-        // SpriteRenderer·Î ¸¸µç ÈùÆ®¿¡µµ Àû¿ë
+        // SpriteRendererê°€ ìˆëŠ” ì˜¤ë¸Œì íŠ¸ì—ë„ ì ìš©
         SpriteRenderer[] spriteRenderers = target.GetComponentsInChildren<SpriteRenderer>(true);
         foreach (SpriteRenderer spriteRenderer in spriteRenderers)
         {
             Color color = spriteRenderer.color;
             color.a = alpha;
             spriteRenderer.color = color;
+        }
+    }
+
+    private void SetInitialBackgroundState()
+    {
+        if (defaultBackground != null)
+        {
+            defaultBackground.SetActive(true);
+        }
+
+        if (muralBackground != null)
+        {
+            muralBackground.SetActive(false);
+        }
+    }
+
+    private void ActivateMuralBackground()
+    {
+        if (defaultBackground != null)
+        {
+            defaultBackground.SetActive(false);
+        }
+
+        if (muralBackground != null)
+        {
+            muralBackground.SetActive(true);
         }
     }
 }
