@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: f69e5b7dddbb63241b92270cb0a2f07e
+guid: 2a6d598f324c4e54d9690cf21d7e1e3a
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 3123840573415566545
-    second: bg_stage1_normal_0
+      213: 3626629358175969094
+    second: bg_stage2_mural_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -100,7 +100,7 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: bg_stage1_normal_0
+      name: bg_stage2_mural_0
       rect:
         serializedVersion: 2
         x: 0
@@ -115,8 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 1dc2361637c1a5b20800000000000000
-      internalID: 3123840573415566545
+      spriteID: 64fd412cf20645230800000000000000
+      internalID: 3626629358175969094
       vertices: []
       indices: 
       edges: []
@@ -135,7 +135,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      bg_stage1_normal_0: 3123840573415566545
+      bg_stage2_mural_0: 3626629358175969094
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
