@@ -1,6 +1,7 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.UI;
 
 public class MuralInteractTrigger : MonoBehaviour
 {
@@ -12,6 +13,10 @@ public class MuralInteractTrigger : MonoBehaviour
     [SerializeField, Min(0)] private int lettersToConsume = 3;
     [SerializeField] private UnityEvent onLettersRequirementMet;
 
+    [Header("Interact Hint Transparency")]
+    [SerializeField, Range(0f, 1f)] private float defaultInteractHintAlpha = 1f;
+    [SerializeField, Range(0f, 1f)] private float notEnoughInteractHintAlpha = 0.5f;
+
     private PlayerLetterInventory currentPlayerInventory;
     private bool isPlayerInside;
     private Coroutine notEnoughHintRoutine;
@@ -20,6 +25,7 @@ public class MuralInteractTrigger : MonoBehaviour
     {
         SetHintActive(interactHint, false);
         SetHintActive(notEnoughLetterHint, false);
+        SetHintTransparency(interactHint, defaultInteractHintAlpha);
     }
 
     private void Update()
@@ -45,6 +51,7 @@ public class MuralInteractTrigger : MonoBehaviour
         {
             int consumeAmount = Mathf.Max(0, lettersToConsume);
             bool consumed = currentPlayerInventory.ConsumeLetters(consumeAmount);
+
             if (!consumed)
             {
                 Debug.Log("편지 아이콘 부족");
@@ -54,6 +61,8 @@ public class MuralInteractTrigger : MonoBehaviour
         }
 
         SetHintActive(interactHint, false);
+        SetHintTransparency(interactHint, defaultInteractHintAlpha);
+
         onLettersRequirementMet?.Invoke();
         Debug.Log("편지 조건 충족: 벽화 상호작용 가능");
     }
@@ -73,7 +82,9 @@ public class MuralInteractTrigger : MonoBehaviour
 
         currentPlayerInventory = inventory;
         isPlayerInside = true;
+
         SetHintActive(interactHint, true);
+        SetHintTransparency(interactHint, defaultInteractHintAlpha);
     }
 
     private void OnTriggerExit2D(Collider2D other)
@@ -94,16 +105,20 @@ public class MuralInteractTrigger : MonoBehaviour
 
         isPlayerInside = false;
         currentPlayerInventory = null;
+
         SetHintActive(interactHint, false);
+        SetHintActive(notEnoughLetterHint, false);
+        SetHintTransparency(interactHint, defaultInteractHintAlpha);
+
+        if (notEnoughHintRoutine != null)
+        {
+            StopCoroutine(notEnoughHintRoutine);
+            notEnoughHintRoutine = null;
+        }
     }
 
     private void ShowNotEnoughLetterHint()
     {
-        if (notEnoughLetterHint == null)
-        {
-            return;
-        }
-
         if (notEnoughHintRoutine != null)
         {
             StopCoroutine(notEnoughHintRoutine);
@@ -115,13 +130,22 @@ public class MuralInteractTrigger : MonoBehaviour
     private IEnumerator ShowNotEnoughLetterHintRoutine()
     {
         SetHintActive(notEnoughLetterHint, true);
+
+        // 편지 부족 시 Interact Hint를 50% 투명하게
+        SetHintTransparency(interactHint, notEnoughInteractHintAlpha);
+
         float duration = Mathf.Max(0f, notEnoughHintDuration);
+
         if (duration > 0f)
         {
             yield return new WaitForSeconds(duration);
         }
 
         SetHintActive(notEnoughLetterHint, false);
+
+        // 일정 시간 후 다시 원래 투명도로 복구
+        SetHintTransparency(interactHint, defaultInteractHintAlpha);
+
         notEnoughHintRoutine = null;
     }
 
@@ -133,5 +157,33 @@ public class MuralInteractTrigger : MonoBehaviour
         }
 
         target.SetActive(active);
+    }
+
+    private static void SetHintTransparency(GameObject target, float alpha)
+    {
+        if (target == null)
+        {
+            return;
+        }
+
+        alpha = Mathf.Clamp01(alpha);
+
+        // UI Image, Text 등에 적용
+        Graphic[] graphics = target.GetComponentsInChildren<Graphic>(true);
+        foreach (Graphic graphic in graphics)
+        {
+            Color color = graphic.color;
+            color.a = alpha;
+            graphic.color = color;
+        }
+
+        // SpriteRenderer로 만든 힌트에도 적용
+        SpriteRenderer[] spriteRenderers = target.GetComponentsInChildren<SpriteRenderer>(true);
+        foreach (SpriteRenderer spriteRenderer in spriteRenderers)
+        {
+            Color color = spriteRenderer.color;
+            color.a = alpha;
+            spriteRenderer.color = color;
+        }
     }
 }
