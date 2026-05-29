@@ -1,0 +1,32 @@
+Visual Novel StageGoal Setup Guide
+
+Hierarchy example:
+Stage
+- NPC_StageGoal
+  - SpriteRenderer
+  - BoxCollider2D (Is Trigger = true)
+  - StageGoal
+- Canvas
+  - VisualNovelPanel (initially inactive)
+    - DimBackground
+    - DandiPortrait
+    - NpcPortrait
+    - DialogueBox
+      - SpeakerNameText
+      - DialogueText
+      - NextButton
+
+VisualNovelDialogueController:
+- Add the component to a scene object, such as VisualNovelPanel or Canvas.
+- Assign Dialogue Panel, Dandi Portrait, NPC Portrait, Speaker Name Text, Dialogue Text, and Next Button.
+- Keep Next Key as Space and Characters Per Second around 35.
+- Enable Show Cursor During Dialogue if the mouse cursor should be visible during the conversation.
+
+NPC_StageGoal:
+- Use the existing StageGoal component on the NPC object. Do not create a separate portal object.
+- Set useDialogueBeforeClear to true.
+- Set nextSceneName to the scene that should load after the dialogue.
+- Assign the VisualNovelDialogueController or leave it empty to auto-find one in the scene.
+- Fill dialogueLines with NPC and Dandi lines.
+- Assign dandiPortraitSprite and npcPortraitSprite for the current stage.
+- Set requireInteractKey to false for automatic dialogue on touch, or true to show interactHint and wait for E.
