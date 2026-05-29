@@ -17,6 +17,12 @@ public class MuralInteractTrigger : MonoBehaviour
     [SerializeField] private GameObject defaultBackground;
     [SerializeField] private GameObject muralBackground;
 
+    [Header("Object Toggle")]
+    [Tooltip("벽화 상호작용 전 활성화되어 있을 기존 발판/맵 한 덩이 오브젝트입니다.")]
+    [SerializeField] private GameObject defaultObjectGroup;
+    [Tooltip("벽화 조건 만족 후 활성화할 새 발판/맵 한 덩이 오브젝트입니다.")]
+    [SerializeField] private GameObject muralObjectGroup;
+
     [Header("Interact Hint Transparency")]
     [SerializeField, Range(0f, 1f)] private float defaultInteractHintAlpha = 1f;
     [SerializeField, Range(0f, 1f)] private float notEnoughInteractHintAlpha = 0.5f;
@@ -31,6 +37,7 @@ public class MuralInteractTrigger : MonoBehaviour
         SetHintActive(notEnoughLetterHint, false);
         SetHintTransparency(interactHint, defaultInteractHintAlpha);
         SetInitialBackgroundState();
+        SetInitialObjectGroupState();
     }
 
     private void Update()
@@ -69,6 +76,7 @@ public class MuralInteractTrigger : MonoBehaviour
         SetHintTransparency(interactHint, defaultInteractHintAlpha);
 
         ActivateMuralBackground();
+        ActivateMuralObjectGroup();
         onLettersRequirementMet?.Invoke();
         Debug.Log("벽화 조건 충족: 벽화 상호작용 완료");
     }
@@ -195,27 +203,34 @@ public class MuralInteractTrigger : MonoBehaviour
 
     private void SetInitialBackgroundState()
     {
-        if (defaultBackground != null)
-        {
-            defaultBackground.SetActive(true);
-        }
-
-        if (muralBackground != null)
-        {
-            muralBackground.SetActive(false);
-        }
+        SetObjectPairActive(defaultBackground, muralBackground, false);
     }
 
     private void ActivateMuralBackground()
     {
-        if (defaultBackground != null)
+        SetObjectPairActive(defaultBackground, muralBackground, true);
+    }
+
+    private void SetInitialObjectGroupState()
+    {
+        SetObjectPairActive(defaultObjectGroup, muralObjectGroup, false);
+    }
+
+    private void ActivateMuralObjectGroup()
+    {
+        SetObjectPairActive(defaultObjectGroup, muralObjectGroup, true);
+    }
+
+    private static void SetObjectPairActive(GameObject defaultObject, GameObject muralObject, bool muralActive)
+    {
+        if (defaultObject != null)
         {
-            defaultBackground.SetActive(false);
+            defaultObject.SetActive(!muralActive);
         }
 
-        if (muralBackground != null)
+        if (muralObject != null)
         {
-            muralBackground.SetActive(true);
+            muralObject.SetActive(muralActive);
         }
     }
 }
