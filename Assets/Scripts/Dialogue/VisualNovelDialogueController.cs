@@ -21,16 +21,22 @@ public class VisualNovelDialogueController : MonoBehaviour
 
     [Header("Typing")]
     [SerializeField] private float charactersPerSecond = 35f;
+
+    [Header("Cursor")]
     [SerializeField] private bool showCursorDuringDialogue = true;
+    [SerializeField] private bool restoreCursorAfterDialogue = false;
 
     public bool IsPlaying { get; private set; }
 
     private DialogueLine[] currentLines;
     private int currentLineIndex;
-    private Action onFinished;
+    private Action finishedCallback;
     private Coroutine typingCoroutine;
     private bool isTyping;
     private string currentFullText = string.Empty;
+    private GameObject currentPlayerObject;
+    private bool previousCursorVisible;
+    private CursorLockMode previousCursorLockState;
 
     private void Awake()
     {
@@ -63,26 +69,27 @@ public class VisualNovelDialogueController : MonoBehaviour
 
     public void SetPortraitSprites(Sprite dandiSprite, Sprite npcSprite)
     {
-        if (dandiPortrait != null)
-        {
-            dandiPortrait.sprite = dandiSprite;
-            dandiPortrait.enabled = dandiSprite != null;
-        }
-
-        if (npcPortrait != null)
-        {
-            npcPortrait.sprite = npcSprite;
-            npcPortrait.enabled = npcSprite != null;
-        }
+        SetPortraitSprite(dandiPortrait, dandiSprite);
+        SetPortraitSprite(npcPortrait, npcSprite);
     }
 
-    public void StartDialogue(DialogueLine[] lines, GameObject playerObject, Action onDialogueFinished)
+    public void StartDialogue(DialogueLine[] dialogueLines, GameObject playerObject, Action onDialogueFinished)
     {
+        if (IsPlaying)
+            return;
+
+        if (dialogueLines == null || dialogueLines.Length == 0)
+        {
+            onDialogueFinished?.Invoke();
+            return;
+        }
+
         StopTypingCoroutine();
 
-        currentLines = lines;
+        currentLines = dialogueLines;
         currentLineIndex = 0;
-        onFinished = onDialogueFinished;
+        finishedCallback = onDialogueFinished;
+        currentPlayerObject = GetPlayerObject(playerObject);
         IsPlaying = true;
         isTyping = false;
         currentFullText = string.Empty;
@@ -92,16 +99,9 @@ public class VisualNovelDialogueController : MonoBehaviour
             dialoguePanel.SetActive(true);
         }
 
-        DisablePlayerControl(playerObject);
+        DisablePlayerControl(currentPlayerObject);
         ShowCursorForDialogue();
         RegisterNextButtonListener();
-
-        if (currentLines == null || currentLines.Length == 0)
-        {
-            FinishDialogue();
-            return;
-        }
-
         ShowLine(currentLineIndex);
     }
 
@@ -204,9 +204,27 @@ public class VisualNovelDialogueController : MonoBehaviour
             dialoguePanel.SetActive(false);
         }
 
-        Action finishedCallback = onFinished;
-        onFinished = null;
-        finishedCallback?.Invoke();
+        EnablePlayerControl(currentPlayerObject);
+        RestoreCursorIfNeeded();
+        currentPlayerObject = null;
+
+        Action callback = finishedCallback;
+        finishedCallback = null;
+        callback?.Invoke();
+    }
+
+    private GameObject GetPlayerObject(GameObject playerObject)
+    {
+        if (playerObject == null)
+            return null;
+
+        PlayController player = playerObject.GetComponentInParent<PlayController>();
+        if (player != null)
+        {
+            return player.gameObject;
+        }
+
+        return playerObject;
     }
 
     private void DisablePlayerControl(GameObject playerObject)
@@ -214,26 +232,59 @@ public class VisualNovelDialogueController : MonoBehaviour
         if (playerObject == null)
             return;
 
-        PlayController player = playerObject.GetComponent<PlayController>();
+        PlayController player = playerObject.GetComponentInParent<PlayController>();
         if (player != null)
         {
             player.enabled = false;
         }
 
-        Rigidbody2D rb = playerObject.GetComponent<Rigidbody2D>();
+        Rigidbody2D rb = playerObject.GetComponentInParent<Rigidbody2D>();
         if (rb != null)
         {
             rb.linearVelocity = Vector2.zero;
         }
     }
 
+    private void EnablePlayerControl(GameObject playerObject)
+    {
+        if (playerObject == null)
+            return;
+
+        PlayController player = playerObject.GetComponentInParent<PlayController>();
+        if (player != null)
+        {
+            player.enabled = true;
+        }
+    }
+
     private void ShowCursorForDialogue()
     {
+        previousCursorVisible = Cursor.visible;
+        previousCursorLockState = Cursor.lockState;
+
         if (!showCursorDuringDialogue)
             return;
 
         Cursor.visible = true;
         Cursor.lockState = CursorLockMode.None;
+    }
+
+    private void RestoreCursorIfNeeded()
+    {
+        if (!restoreCursorAfterDialogue)
+            return;
+
+        Cursor.visible = previousCursorVisible;
+        Cursor.lockState = previousCursorLockState;
+    }
+
+    private void SetPortraitSprite(Image portrait, Sprite sprite)
+    {
+        if (portrait == null)
+            return;
+
+        portrait.sprite = sprite;
+        portrait.enabled = sprite != null;
     }
 
     private void SetPortraitAlpha(DialogueSpeaker activeSpeaker)

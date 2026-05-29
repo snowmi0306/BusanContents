@@ -1,32 +1,88 @@
-Visual Novel StageGoal Setup Guide
+Visual Novel StagePortal NPC Setup Guide
+
+Important project rule:
+- StagePortal is the stage-end NPC in this project.
+- Do not create a separate Portal object.
+- Do not create a separate NPC_StageGoal object.
+- Do not create another goal trigger script.
+- Do not deactivate StagePortal at scene start; it must stay active as the NPC.
 
 Hierarchy example:
 Stage
-- NPC_StageGoal
-  - SpriteRenderer
-  - BoxCollider2D (Is Trigger = true)
-  - StageGoal
-- Canvas
-  - VisualNovelPanel (initially inactive)
-    - DimBackground
-    - DandiPortrait
-    - NpcPortrait
-    - DialogueBox
-      - SpeakerNameText
-      - DialogueText
-      - NextButton
+- _SYSTEM
+  - EventSystem
+  - DialogueManager (active)
+    - VisualNovelDialogueController
+- _UI
+  - Canvas
+  - VisualNovelCanvas
+    - VisualNovelPanel (initially inactive)
+      - DimBackground
+      - DandiPortrait
+      - NPCPortrait
+      - DialogueBox
+        - SpeakerNameText
+        - DialogueText
+        - NextButton
+          - NextButtonText
+- _PLAYER
+  - Player
+- _WORLD_ALWAYS
+  - DeliveryEnd_Stage
+    - home_01_0
+    - StagePortal (active NPC)
+      - SpriteRenderer
+      - BoxCollider2D (Is Trigger = true)
+      - StageGoal
 
 VisualNovelDialogueController:
-- Add the component to a scene object, such as VisualNovelPanel or Canvas.
-- Assign Dialogue Panel, Dandi Portrait, NPC Portrait, Speaker Name Text, Dialogue Text, and Next Button.
+- Attach this component to the always-active DialogueManager object.
+- Do not attach this component to the initially inactive VisualNovelPanel.
+- Assign Dialogue Panel to VisualNovelPanel.
+- Assign Dandi Portrait, NPC Portrait, Speaker Name Text, Dialogue Text, and Next Button.
+- Leave the NextButton Inspector OnClick list empty; VisualNovelDialogueController registers the click handler in code.
 - Keep Next Key as Space and Characters Per Second around 35.
-- Enable Show Cursor During Dialogue if the mouse cursor should be visible during the conversation.
+- Enable Show Cursor During Dialogue so Cursor.visible becomes true and Cursor.lockState becomes None during dialogue.
+- Leave Restore Cursor After Dialogue disabled unless a scene specifically needs the old cursor state restored.
 
-NPC_StageGoal:
-- Use the existing StageGoal component on the NPC object. Do not create a separate portal object.
-- Set useDialogueBeforeClear to true.
-- Set nextSceneName to the scene that should load after the dialogue.
-- Assign the VisualNovelDialogueController or leave it empty to auto-find one in the scene.
-- Fill dialogueLines with NPC and Dandi lines.
-- Assign dandiPortraitSprite and npcPortraitSprite for the current stage.
-- Set requireInteractKey to false for automatic dialogue on touch, or true to show interactHint and wait for E.
+StagePortal / StageGoal:
+- Use the existing StageGoal component on StagePortal.
+- StageGoal is both the NPC dialogue trigger and the stage clear trigger.
+- Set Use Dialogue Before Clear to true.
+- Assign the scene's DialogueManager VisualNovelDialogueController, or leave it empty so StageGoal can find it at runtime.
+- Fill Dialogue Lines with NPC and Dandi lines.
+- Assign Dandi Portrait Sprite and the current stage NPC Portrait Sprite.
+- Set Require Interact Key to false for automatic dialogue when the player touches StagePortal.
+- If Require Interact Key is true, assign Interact Hint and use Interact Key, usually E.
+- Assign Transition Panel if a fade/cover panel should appear after dialogue.
+- Set Load Delay After Dialogue to about 0.5 seconds.
+
+Stage-specific StagePortal values:
+Stage1:
+- SpriteRenderer = ClearVisual_NPC1
+- Dandi Portrait Sprite = ClearVisual_Dandi
+- NPC Portrait Sprite = ClearVisual_NPC1
+- Next Scene Name = Stage2
+
+Stage2:
+- SpriteRenderer = ClearVisual_NPC2
+- Dandi Portrait Sprite = ClearVisual_Dandi
+- NPC Portrait Sprite = ClearVisual_NPC2
+- Next Scene Name = Stage3
+
+Stage3:
+- SpriteRenderer = ClearVisual_NPC3
+- Dandi Portrait Sprite = ClearVisual_Dandi
+- NPC Portrait Sprite = ClearVisual_NPC3
+- Next Scene Name = ClearScene
+
+Dialogue behavior checklist:
+- Player touches StagePortal Trigger.
+- StageGoal calls VisualNovelDialogueController.StartDialogue().
+- Dialogue panel opens and both portraits are shown if their Image references and Sprites are assigned.
+- The active speaker portrait alpha is 1.0; the inactive speaker portrait alpha is 0.5.
+- Text types one character at a time.
+- Space and NextButton do the same thing.
+- Pressing Space or NextButton while typing instantly completes the current line.
+- Pressing Space or NextButton after the line is complete advances to the next line.
+- After the last line, StageGoal shows transitionPanel, waits loadDelayAfterDialogue, then loads nextSceneName.
