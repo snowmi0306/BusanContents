@@ -11,6 +11,7 @@ public class StageGoal : MonoBehaviour
     [SerializeField] private float transitionDelay = 1.5f;
     [SerializeField] private GameObject transitionPanel;
     [SerializeField] private bool disablePlayerControl = true;
+    [SerializeField] private float loadDelayAfterDialogue = 0.5f;
 
     [Header("Visual Novel Dialogue")]
     [SerializeField] private bool useDialogueBeforeClear = true;
@@ -18,7 +19,6 @@ public class StageGoal : MonoBehaviour
     [SerializeField] private DialogueLine[] dialogueLines;
     [SerializeField] private Sprite dandiPortraitSprite;
     [SerializeField] private Sprite npcPortraitSprite;
-    [SerializeField] private float loadDelayAfterDialogue = 0.5f;
 
     [Header("Interaction")]
     [SerializeField] private bool requireInteractKey = false;
@@ -26,26 +26,36 @@ public class StageGoal : MonoBehaviour
     [SerializeField] private GameObject interactHint;
 
     private bool isCleared;
+    private bool playerInRange;
     private GameObject currentPlayerObject;
 
     private void Awake()
     {
+        Collider2D triggerCollider = GetComponent<Collider2D>();
+        if (triggerCollider != null)
+        {
+            triggerCollider.isTrigger = true;
+        }
+
+        if (interactHint != null)
+        {
+            interactHint.SetActive(false);
+        }
+
         if (transitionPanel != null)
         {
             transitionPanel.SetActive(false);
         }
-
-        SetInteractHintActive(false);
     }
 
     private void Update()
     {
-        if (isCleared || !requireInteractKey || currentPlayerObject == null)
+        if (isCleared || !playerInRange || !requireInteractKey)
             return;
 
         if (Input.GetKeyDown(interactKey))
         {
-            StartClearSequence(currentPlayerObject);
+            StartClearFlow();
         }
     }
 
@@ -57,7 +67,8 @@ public class StageGoal : MonoBehaviour
         if (!other.CompareTag("Player"))
             return;
 
-        currentPlayerObject = other.gameObject;
+        currentPlayerObject = GetPlayerObject(other);
+        playerInRange = true;
 
         if (requireInteractKey)
         {
@@ -65,7 +76,7 @@ public class StageGoal : MonoBehaviour
             return;
         }
 
-        StartClearSequence(currentPlayerObject);
+        StartClearFlow();
     }
 
     private void OnTriggerExit2D(Collider2D other)
@@ -73,15 +84,23 @@ public class StageGoal : MonoBehaviour
         if (!other.CompareTag("Player"))
             return;
 
-        if (currentPlayerObject == other.gameObject)
+        if (isCleared)
+        {
+            SetInteractHintActive(false);
+            return;
+        }
+
+        GameObject exitingPlayerObject = GetPlayerObject(other);
+        if (currentPlayerObject == exitingPlayerObject)
         {
             currentPlayerObject = null;
+            playerInRange = false;
         }
 
         SetInteractHintActive(false);
     }
 
-    private void StartClearSequence(GameObject playerObject)
+    private void StartClearFlow()
     {
         if (isCleared)
             return;
@@ -91,48 +110,43 @@ public class StageGoal : MonoBehaviour
 
         if (useDialogueBeforeClear)
         {
-            StartDialogueBeforeClear(playerObject);
+            StartDialogueFlow();
             return;
         }
 
-        StartImmediateSceneTransition(playerObject);
+        StartImmediateSceneTransition();
     }
 
-    private void StartDialogueBeforeClear(GameObject playerObject)
-    {
-        VisualNovelDialogueController controller = GetDialogueController();
-
-        if (controller == null)
-        {
-            Debug.LogWarning("StageGoal could not find a VisualNovelDialogueController. Loading the next scene without dialogue.", this);
-            StartCoroutine(LoadNextSceneAfterDelay(loadDelayAfterDialogue));
-            return;
-        }
-
-        controller.SetPortraitSprites(dandiPortraitSprite, npcPortraitSprite);
-        controller.StartDialogue(dialogueLines, playerObject, HandleDialogueFinished);
-    }
-
-    private VisualNovelDialogueController GetDialogueController()
+    private void StartDialogueFlow()
     {
         if (dialogueController == null)
         {
             dialogueController = FindFirstObjectByType<VisualNovelDialogueController>();
         }
 
-        return dialogueController;
+        if (dialogueController == null)
+        {
+            Debug.LogWarning("StageGoal could not find a VisualNovelDialogueController. Loading the next scene without dialogue.", this);
+            DisablePlayerControl(currentPlayerObject);
+            StartCoroutine(LoadNextSceneAfterDelay(loadDelayAfterDialogue));
+            return;
+        }
+
+        dialogueController.SetPortraitSprites(dandiPortraitSprite, npcPortraitSprite);
+        dialogueController.StartDialogue(dialogueLines, currentPlayerObject, HandleDialogueFinished);
     }
 
     private void HandleDialogueFinished()
     {
+        DisablePlayerControl(currentPlayerObject);
         StartCoroutine(LoadNextSceneAfterDelay(loadDelayAfterDialogue));
     }
 
-    private void StartImmediateSceneTransition(GameObject playerObject)
+    private void StartImmediateSceneTransition()
     {
         if (disablePlayerControl)
         {
-            DisablePlayerControl(playerObject);
+            DisablePlayerControl(currentPlayerObject);
         }
 
         StartCoroutine(LoadNextSceneAfterDelay(transitionDelay));
@@ -159,18 +173,33 @@ public class StageGoal : MonoBehaviour
         SceneManager.LoadScene(nextSceneName);
     }
 
+
+    private GameObject GetPlayerObject(Collider2D playerCollider)
+    {
+        if (playerCollider == null)
+            return null;
+
+        PlayController player = playerCollider.GetComponentInParent<PlayController>();
+        if (player != null)
+        {
+            return player.gameObject;
+        }
+
+        return playerCollider.gameObject;
+    }
+
     private void DisablePlayerControl(GameObject playerObject)
     {
         if (playerObject == null)
             return;
 
-        PlayController player = playerObject.GetComponent<PlayController>();
+        PlayController player = playerObject.GetComponentInParent<PlayController>();
         if (player != null)
         {
             player.enabled = false;
         }
 
-        Rigidbody2D rb = playerObject.GetComponent<Rigidbody2D>();
+        Rigidbody2D rb = playerObject.GetComponentInParent<Rigidbody2D>();
         if (rb != null)
         {
             rb.linearVelocity = Vector2.zero;
