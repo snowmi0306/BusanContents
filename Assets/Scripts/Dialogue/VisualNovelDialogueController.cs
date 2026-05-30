@@ -16,6 +16,18 @@ public class VisualNovelDialogueController : MonoBehaviour
     [SerializeField] private TMP_Text dialogueText;
     [SerializeField] private Button nextButton;
 
+    [Header("Layout Recovery")]
+    [SerializeField] private bool applyLayoutOnAwake = true;
+    [SerializeField] private RectTransform dialogueBox;
+    [SerializeField] private RectTransform dimBackground;
+    [SerializeField] private Vector2 portraitSize = new Vector2(420f, 560f);
+    [SerializeField] private float portraitSidePadding = 140f;
+    [SerializeField] private float portraitBottomOffset = 110f;
+    [SerializeField] private float dialogueBoxHeight = 240f;
+    [SerializeField] private float dialogueBoxHorizontalPadding = 80f;
+    [SerializeField] private float dialogueBoxBottomPadding = 40f;
+    [SerializeField] private Vector2 nextButtonSize = new Vector2(160f, 56f);
+
     [Header("Input")]
     [SerializeField] private KeyCode nextKey = KeyCode.Space;
 
@@ -40,6 +52,15 @@ public class VisualNovelDialogueController : MonoBehaviour
 
     private void Awake()
     {
+        ResolveMissingReferences();
+
+        if (applyLayoutOnAwake)
+        {
+            ApplyVisualNovelLayout();
+        }
+
+        ValidateRequiredReferences();
+
         if (dialoguePanel != null)
         {
             dialoguePanel.SetActive(false);
@@ -67,6 +88,17 @@ public class VisualNovelDialogueController : MonoBehaviour
         }
     }
 
+#if UNITY_EDITOR
+    [ContextMenu("Recover/Apply Visual Novel Layout")]
+    private void ApplyVisualNovelLayoutFromContextMenu()
+    {
+        ResolveMissingReferences();
+        ApplyVisualNovelLayout();
+        ValidateRequiredReferences();
+        UnityEditor.EditorUtility.SetDirty(this);
+    }
+#endif
+
     public void SetPortraitSprites(Sprite dandiSprite, Sprite npcSprite)
     {
         SetPortraitSprite(dandiPortrait, dandiSprite);
@@ -78,8 +110,12 @@ public class VisualNovelDialogueController : MonoBehaviour
         if (IsPlaying)
             return;
 
+        ResolveMissingReferences();
+        ValidateRequiredReferences();
+
         if (dialogueLines == null || dialogueLines.Length == 0)
         {
+            Debug.LogWarning("VisualNovelDialogueController received no dialogue lines. Finishing immediately.", this);
             onDialogueFinished?.Invoke();
             return;
         }
@@ -213,6 +249,182 @@ public class VisualNovelDialogueController : MonoBehaviour
         callback?.Invoke();
     }
 
+    private void ResolveMissingReferences()
+    {
+        if (dialoguePanel == null)
+        {
+            dialoguePanel = gameObject;
+        }
+
+        Transform root = dialoguePanel != null ? dialoguePanel.transform : transform;
+
+        if (dandiPortrait == null)
+        {
+            dandiPortrait = FindImageByName(root, "DandiPortrait");
+        }
+
+        if (npcPortrait == null)
+        {
+            npcPortrait = FindImageByName(root, "NPCPortrait");
+        }
+
+        if (speakerNameText == null)
+        {
+            speakerNameText = FindTextByName(root, "SpeakerNameText");
+        }
+
+        if (dialogueText == null)
+        {
+            dialogueText = FindTextByName(root, "DialogueText");
+        }
+
+        if (nextButton == null)
+        {
+            nextButton = root.GetComponentInChildren<Button>(true);
+        }
+
+        if (dialogueBox == null)
+        {
+            Transform foundDialogueBox = FindChildByName(root, "DialogueBox");
+            if (foundDialogueBox != null)
+            {
+                dialogueBox = foundDialogueBox as RectTransform;
+            }
+        }
+
+        if (dimBackground == null)
+        {
+            Transform foundDimBackground = FindChildByName(root, "DimBackground");
+            if (foundDimBackground != null)
+            {
+                dimBackground = foundDimBackground as RectTransform;
+            }
+        }
+    }
+
+    private void ValidateRequiredReferences()
+    {
+        if (dialoguePanel == null)
+        {
+            Debug.LogWarning("VisualNovelDialogueController is missing Dialogue Panel.", this);
+        }
+
+        if (dandiPortrait == null)
+        {
+            Debug.LogWarning("VisualNovelDialogueController is missing DandiPortrait Image. Create or assign a child named DandiPortrait.", this);
+        }
+
+        if (npcPortrait == null)
+        {
+            Debug.LogWarning("VisualNovelDialogueController is missing NPCPortrait Image. Create or assign a child named NPCPortrait.", this);
+        }
+
+        if (speakerNameText == null)
+        {
+            Debug.LogWarning("VisualNovelDialogueController is missing SpeakerNameText TMP_Text. Create or assign a child named SpeakerNameText.", this);
+        }
+
+        if (dialogueText == null)
+        {
+            Debug.LogWarning("VisualNovelDialogueController is missing DialogueText TMP_Text. Create or assign a child named DialogueText.", this);
+        }
+
+        if (nextButton == null)
+        {
+            Debug.LogWarning("VisualNovelDialogueController is missing Next Button.", this);
+        }
+    }
+
+    private void ApplyVisualNovelLayout()
+    {
+        RectTransform panelRect = GetRectTransform(dialoguePanel);
+        SetStretchToParent(panelRect);
+
+        SetStretchToParent(dimBackground);
+
+        ConfigurePortrait(dandiPortrait, true);
+        ConfigurePortrait(npcPortrait, false);
+        ConfigureDialogueBox();
+        ConfigureSpeakerNameText();
+        ConfigureDialogueText();
+        ConfigureNextButton();
+    }
+
+    private void ConfigurePortrait(Image portrait, bool isLeft)
+    {
+        if (portrait == null)
+            return;
+
+        RectTransform rect = portrait.rectTransform;
+        rect.anchorMin = isLeft ? Vector2.zero : Vector2.right;
+        rect.anchorMax = isLeft ? Vector2.zero : Vector2.right;
+        rect.pivot = new Vector2(0.5f, 0f);
+        rect.sizeDelta = portraitSize;
+        rect.anchoredPosition = new Vector2(isLeft ? portraitSidePadding : -portraitSidePadding, portraitBottomOffset);
+        portrait.preserveAspect = true;
+    }
+
+    private void ConfigureDialogueBox()
+    {
+        if (dialogueBox == null)
+            return;
+
+        dialogueBox.anchorMin = Vector2.zero;
+        dialogueBox.anchorMax = Vector2.right;
+        dialogueBox.pivot = new Vector2(0.5f, 0f);
+        dialogueBox.anchoredPosition = new Vector2(0f, dialogueBoxBottomPadding);
+        dialogueBox.sizeDelta = new Vector2(-dialogueBoxHorizontalPadding * 2f, dialogueBoxHeight);
+    }
+
+    private void ConfigureSpeakerNameText()
+    {
+        if (speakerNameText == null)
+            return;
+
+        RectTransform rect = speakerNameText.rectTransform;
+        rect.anchorMin = Vector2.up;
+        rect.anchorMax = Vector2.up;
+        rect.pivot = new Vector2(0f, 1f);
+        rect.anchoredPosition = new Vector2(40f, -24f);
+        rect.sizeDelta = new Vector2(360f, 48f);
+        speakerNameText.enableAutoSizing = false;
+        speakerNameText.fontSize = 32f;
+        speakerNameText.alignment = TextAlignmentOptions.Left;
+    }
+
+    private void ConfigureDialogueText()
+    {
+        if (dialogueText == null)
+            return;
+
+        RectTransform rect = dialogueText.rectTransform;
+        rect.anchorMin = Vector2.zero;
+        rect.anchorMax = Vector2.one;
+        rect.pivot = new Vector2(0.5f, 0.5f);
+        rect.offsetMin = new Vector2(40f, 42f);
+        rect.offsetMax = new Vector2(-40f, -84f);
+        dialogueText.enableAutoSizing = false;
+        dialogueText.fontSize = 30f;
+        dialogueText.alignment = TextAlignmentOptions.TopLeft;
+        dialogueText.enableWordWrapping = true;
+    }
+
+    private void ConfigureNextButton()
+    {
+        if (nextButton == null)
+            return;
+
+        RectTransform rect = nextButton.transform as RectTransform;
+        if (rect == null)
+            return;
+
+        rect.anchorMin = Vector2.one;
+        rect.anchorMax = Vector2.one;
+        rect.pivot = Vector2.one;
+        rect.anchoredPosition = new Vector2(-36f, -28f);
+        rect.sizeDelta = nextButtonSize;
+    }
+
     private GameObject GetPlayerObject(GameObject playerObject)
     {
         if (playerObject == null)
@@ -335,5 +547,50 @@ public class VisualNovelDialogueController : MonoBehaviour
             StopCoroutine(typingCoroutine);
             typingCoroutine = null;
         }
+    }
+
+    private static RectTransform GetRectTransform(GameObject target)
+    {
+        return target != null ? target.transform as RectTransform : null;
+    }
+
+    private static void SetStretchToParent(RectTransform rect)
+    {
+        if (rect == null)
+            return;
+
+        rect.anchorMin = Vector2.zero;
+        rect.anchorMax = Vector2.one;
+        rect.pivot = new Vector2(0.5f, 0.5f);
+        rect.offsetMin = Vector2.zero;
+        rect.offsetMax = Vector2.zero;
+    }
+
+    private static Image FindImageByName(Transform root, string targetName)
+    {
+        Transform child = FindChildByName(root, targetName);
+        return child != null ? child.GetComponent<Image>() : null;
+    }
+
+    private static TMP_Text FindTextByName(Transform root, string targetName)
+    {
+        Transform child = FindChildByName(root, targetName);
+        return child != null ? child.GetComponent<TMP_Text>() : null;
+    }
+
+    private static Transform FindChildByName(Transform root, string targetName)
+    {
+        if (root == null || string.IsNullOrEmpty(targetName))
+            return null;
+
+        foreach (Transform child in root.GetComponentsInChildren<Transform>(true))
+        {
+            if (child.name == targetName)
+            {
+                return child;
+            }
+        }
+
+        return null;
     }
 }
