@@ -23,6 +23,12 @@ public class MuralInteractTrigger : MonoBehaviour
     [Tooltip("벽화 조건 만족 후 활성화할 새 발판/맵 한 덩이 오브젝트입니다.")]
     [SerializeField] private GameObject muralObjectGroup;
 
+    [Header("Checkpoint")]
+    [Tooltip("벽화 조건을 만족해 전환이 끝났을 때 플레이어의 세이브 포인트를 갱신합니다.")]
+    [SerializeField] private bool setCheckpointOnSuccess = true;
+    [Tooltip("비워두면 이 벽화 오브젝트 위치가 세이브 포인트로 저장됩니다.")]
+    [SerializeField] private Transform checkpointRespawnPoint;
+
     [Header("Interact Hint Transparency")]
     [SerializeField, Range(0f, 1f)] private float defaultInteractHintAlpha = 1f;
     [SerializeField, Range(0f, 1f)] private float notEnoughInteractHintAlpha = 0.5f;
@@ -77,6 +83,7 @@ public class MuralInteractTrigger : MonoBehaviour
 
         ActivateMuralBackground();
         ActivateMuralObjectGroup();
+        SetMuralCheckpoint();
         onLettersRequirementMet?.Invoke();
         Debug.Log("벽화 조건 충족: 벽화 상호작용 완료");
     }
@@ -219,6 +226,27 @@ public class MuralInteractTrigger : MonoBehaviour
     private void ActivateMuralObjectGroup()
     {
         SetObjectPairActive(defaultObjectGroup, muralObjectGroup, true);
+    }
+
+    private void SetMuralCheckpoint()
+    {
+        if (!setCheckpointOnSuccess || currentPlayerInventory == null)
+        {
+            return;
+        }
+
+        PlayController player = currentPlayerInventory.GetComponentInParent<PlayController>();
+        if (player == null)
+        {
+            return;
+        }
+
+        Vector3 checkpointPosition = checkpointRespawnPoint != null
+            ? checkpointRespawnPoint.position
+            : transform.position;
+
+        player.SetCheckpoint(checkpointPosition);
+        Debug.Log("벽화 세이브 포인트 저장: " + checkpointPosition);
     }
 
     private static void SetObjectPairActive(GameObject defaultObject, GameObject muralObject, bool muralActive)
