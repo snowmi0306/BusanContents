@@ -2605,12 +2605,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 364969861}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -58.27948, y: -220.70618, z: 0}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 317.14, y: 30.7, z: 0}
   m_LocalScale: {x: 1.5, y: 1.5, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 1169185601}
+  m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &383799724
 PrefabInstance:
@@ -11483,10 +11483,6 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 15762758}
     - target: {fileID: 6570156723804923203, guid: 16257069d5ab7d147a7e16e08c9810ce, type: 3}
-      propertyPath: checkpointRespawnPoint
-      value: 
-      objectReference: {fileID: 1353849628}
-    - target: {fileID: 6570156723804923203, guid: 16257069d5ab7d147a7e16e08c9810ce, type: 3}
       propertyPath: onLettersRequirementMet.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
       objectReference: {fileID: 1344295608}
@@ -13075,7 +13071,6 @@ Transform:
   - {fileID: 989185035}
   - {fileID: 992654042}
   - {fileID: 894104167}
-  - {fileID: 364969863}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1180965931
@@ -20031,6 +20026,7 @@ SceneRoots:
   - {fileID: 1169185601}
   - {fileID: 15762759}
   - {fileID: 1936316521}
+  - {fileID: 364969863}
   - {fileID: 395914064}
   - {fileID: 754736503}
   - {fileID: 1902233591}
