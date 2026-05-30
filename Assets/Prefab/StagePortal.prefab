@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 2854160724973237125}
   - component: {fileID: 6323343679397330317}
   - component: {fileID: 3227858899573627926}
-  - component: {fileID: 7568634346630669423}
+  - component: {fileID: 8939016824696179771}
   m_Layer: 0
   m_Name: StagePortal
   m_TagString: Untagged
@@ -137,9 +137,9 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 5, y: 2.5}
+  m_Size: {x: 3, y: 2.5}
   m_EdgeRadius: 0
---- !u!114 &7568634346630669423
+--- !u!114 &8939016824696179771
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -151,7 +151,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3b2bbf2ea8fcb37429a08bc8cbbcedab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::StageGoal
-  nextSceneName: ClearScene
+  nextSceneName: Stage2
   transitionDelay: 1.5
   transitionPanel: {fileID: 0}
   disablePlayerControl: 1
+  loadDelayAfterDialogue: 0.5
+  useDialogueBeforeClear: 1
+  dialogueController: {fileID: 0}
+  dialogueLines: []
+  dandiPortraitSprite: {fileID: 0}
+  npcPortraitSprite: {fileID: 0}
+  requireInteractKey: 0
+  interactKey: 101
+  interactHint: {fileID: 0}
