@@ -20,13 +20,6 @@ public class VisualNovelDialogueController : MonoBehaviour
     [SerializeField] private bool applyLayoutOnAwake = true;
     [SerializeField] private RectTransform dialogueBox;
     [SerializeField] private RectTransform dimBackground;
-    [SerializeField] private Vector2 portraitSize = new Vector2(420f, 560f);
-    [SerializeField] private float portraitSidePadding = 140f;
-    [SerializeField] private float portraitBottomOffset = 110f;
-    [SerializeField] private float dialogueBoxHeight = 240f;
-    [SerializeField] private float dialogueBoxHorizontalPadding = 80f;
-    [SerializeField] private float dialogueBoxBottomPadding = 40f;
-    [SerializeField] private Vector2 nextButtonSize = new Vector2(160f, 56f);
 
     [Header("Input")]
     [SerializeField] private KeyCode nextKey = KeyCode.Space;
@@ -337,43 +330,18 @@ public class VisualNovelDialogueController : MonoBehaviour
 
     private void ApplyVisualNovelLayout()
     {
-        RectTransform panelRect = GetRectTransform(dialoguePanel);
-        SetStretchToParent(panelRect);
-
-        SetStretchToParent(dimBackground);
-
-        ConfigurePortrait(dandiPortrait, true);
-        ConfigurePortrait(npcPortrait, false);
-        ConfigureDialogueBox();
+        ConfigurePortrait(dandiPortrait);
+        ConfigurePortrait(npcPortrait);
         ConfigureSpeakerNameText();
         ConfigureDialogueText();
-        ConfigureNextButton();
     }
 
-    private void ConfigurePortrait(Image portrait, bool isLeft)
+    private void ConfigurePortrait(Image portrait)
     {
         if (portrait == null)
             return;
 
-        RectTransform rect = portrait.rectTransform;
-        rect.anchorMin = isLeft ? Vector2.zero : Vector2.right;
-        rect.anchorMax = isLeft ? Vector2.zero : Vector2.right;
-        rect.pivot = new Vector2(0.5f, 0f);
-        rect.sizeDelta = portraitSize;
-        rect.anchoredPosition = new Vector2(isLeft ? portraitSidePadding : -portraitSidePadding, portraitBottomOffset);
         portrait.preserveAspect = true;
-    }
-
-    private void ConfigureDialogueBox()
-    {
-        if (dialogueBox == null)
-            return;
-
-        dialogueBox.anchorMin = Vector2.zero;
-        dialogueBox.anchorMax = Vector2.right;
-        dialogueBox.pivot = new Vector2(0.5f, 0f);
-        dialogueBox.anchoredPosition = new Vector2(0f, dialogueBoxBottomPadding);
-        dialogueBox.sizeDelta = new Vector2(-dialogueBoxHorizontalPadding * 2f, dialogueBoxHeight);
     }
 
     private void ConfigureSpeakerNameText()
@@ -381,12 +349,6 @@ public class VisualNovelDialogueController : MonoBehaviour
         if (speakerNameText == null)
             return;
 
-        RectTransform rect = speakerNameText.rectTransform;
-        rect.anchorMin = Vector2.up;
-        rect.anchorMax = Vector2.up;
-        rect.pivot = new Vector2(0f, 1f);
-        rect.anchoredPosition = new Vector2(40f, -24f);
-        rect.sizeDelta = new Vector2(360f, 48f);
         speakerNameText.enableAutoSizing = false;
         speakerNameText.fontSize = 32f;
         speakerNameText.alignment = TextAlignmentOptions.Left;
@@ -397,32 +359,10 @@ public class VisualNovelDialogueController : MonoBehaviour
         if (dialogueText == null)
             return;
 
-        RectTransform rect = dialogueText.rectTransform;
-        rect.anchorMin = Vector2.zero;
-        rect.anchorMax = Vector2.one;
-        rect.pivot = new Vector2(0.5f, 0.5f);
-        rect.offsetMin = new Vector2(40f, 42f);
-        rect.offsetMax = new Vector2(-40f, -84f);
         dialogueText.enableAutoSizing = false;
         dialogueText.fontSize = 30f;
         dialogueText.alignment = TextAlignmentOptions.TopLeft;
         dialogueText.enableWordWrapping = true;
-    }
-
-    private void ConfigureNextButton()
-    {
-        if (nextButton == null)
-            return;
-
-        RectTransform rect = nextButton.transform as RectTransform;
-        if (rect == null)
-            return;
-
-        rect.anchorMin = Vector2.one;
-        rect.anchorMax = Vector2.one;
-        rect.pivot = Vector2.one;
-        rect.anchoredPosition = new Vector2(-36f, -28f);
-        rect.sizeDelta = nextButtonSize;
     }
 
     private GameObject GetPlayerObject(GameObject playerObject)
@@ -547,23 +487,6 @@ public class VisualNovelDialogueController : MonoBehaviour
             StopCoroutine(typingCoroutine);
             typingCoroutine = null;
         }
-    }
-
-    private static RectTransform GetRectTransform(GameObject target)
-    {
-        return target != null ? target.transform as RectTransform : null;
-    }
-
-    private static void SetStretchToParent(RectTransform rect)
-    {
-        if (rect == null)
-            return;
-
-        rect.anchorMin = Vector2.zero;
-        rect.anchorMax = Vector2.one;
-        rect.pivot = new Vector2(0.5f, 0.5f);
-        rect.offsetMin = Vector2.zero;
-        rect.offsetMax = Vector2.zero;
     }
 
     private static Image FindImageByName(Transform root, string targetName)
