@@ -121,12 +121,20 @@ public class StageGoal : MonoBehaviour
     {
         if (dialogueController == null)
         {
-            dialogueController = FindFirstObjectByType<VisualNovelDialogueController>();
+            dialogueController = FindFirstObjectByType<VisualNovelDialogueController>(FindObjectsInactive.Include);
         }
 
         if (dialogueController == null)
         {
-            Debug.LogWarning("StageGoal could not find a VisualNovelDialogueController. Loading the next scene without dialogue.", this);
+            Debug.LogWarning("StageGoal could not find a VisualNovelDialogueController. Loading the next scene without dialogue. Add a VisualNovelDialogueController under the Canvas or assign it here.", this);
+            DisablePlayerControl(currentPlayerObject);
+            StartCoroutine(LoadNextSceneAfterDelay(loadDelayAfterDialogue));
+            return;
+        }
+
+        if (dialogueLines == null || dialogueLines.Length == 0)
+        {
+            Debug.LogWarning("StageGoal has no dialogue lines. Loading the next scene without dialogue.", this);
             DisablePlayerControl(currentPlayerObject);
             StartCoroutine(LoadNextSceneAfterDelay(loadDelayAfterDialogue));
             return;
