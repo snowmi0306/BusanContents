@@ -5,6 +5,10 @@ using UnityEngine.UI;
 
 public class MuralInteractTrigger : MonoBehaviour
 {
+    [Header("Transition Manager")]
+    [Tooltip("여기에 방금 만든 TransitionManager 오브젝트를 넣어주세요!")]
+    [SerializeField] private MuralTransitionManager transitionManager; // 🔥 새로 추가됨
+
     [SerializeField] private KeyCode interactKey = KeyCode.E;
     [SerializeField] private GameObject interactHint;
     [SerializeField] private GameObject notEnoughLetterHint;
@@ -78,14 +82,32 @@ public class MuralInteractTrigger : MonoBehaviour
             }
         }
 
+        // --- 조건 만족 시점 ---
         SetHintActive(interactHint, false);
         SetHintTransparency(interactHint, defaultInteractHintAlpha);
 
-        ActivateMuralBackground();
-        ActivateMuralObjectGroup();
-        SetMuralCheckpoint();
-        onLettersRequirementMet?.Invoke();
-        Debug.Log("벽화 조건 충족: 벽화 상호작용 완료");
+        // 🔥 즉시 활성화하지 않고 연출 매니저를 호출합니다.
+        if (transitionManager != null)
+        {
+            transitionManager.StartTransition(this.transform, () =>
+            {
+                // 콜백: 셰이더 연출이 화면을 다 덮은 시점에 발판/배경 교체
+                ActivateMuralBackground();
+                ActivateMuralObjectGroup();
+                SetMuralCheckpoint();
+                onLettersRequirementMet?.Invoke();
+                Debug.Log("벽화 조건 충족: 마리오 원더 연출 및 상호작용 완료");
+            });
+        }
+        else
+        {
+            // 매니저를 안 넣었을 때를 대비한 예비 로직 (즉시 교체)
+            ActivateMuralBackground();
+            ActivateMuralObjectGroup();
+            SetMuralCheckpoint();
+            onLettersRequirementMet?.Invoke();
+            Debug.Log("벽화 조건 충족: 벽화 상호작용 완료 (연출 생략)");
+        }
     }
 
     private void OnTriggerEnter2D(Collider2D other)
