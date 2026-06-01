@@ -39,6 +39,8 @@ public class MuralInteractTrigger : MonoBehaviour
 
     private PlayerLetterInventory currentPlayerInventory;
     private bool isPlayerInside;
+    private bool isTransitioning;
+    private bool isCompleted;
     private Coroutine notEnoughHintRoutine;
 
     private void Awake()
@@ -52,7 +54,7 @@ public class MuralInteractTrigger : MonoBehaviour
 
     private void Update()
     {
-        if (!isPlayerInside || currentPlayerInventory == null)
+        if (!isPlayerInside || currentPlayerInventory == null || isTransitioning || isCompleted)
         {
             return;
         }
@@ -83,31 +85,39 @@ public class MuralInteractTrigger : MonoBehaviour
         }
 
         // --- 조건 만족 시점 ---
+        isTransitioning = true;
         SetHintActive(interactHint, false);
         SetHintTransparency(interactHint, defaultInteractHintAlpha);
 
-        // 🔥 즉시 활성화하지 않고 연출 매니저를 호출합니다.
         if (transitionManager != null)
         {
-            transitionManager.StartTransition(this.transform, () =>
-            {
-                // 콜백: 셰이더 연출이 화면을 다 덮은 시점에 발판/배경 교체
-                ActivateMuralBackground();
-                ActivateMuralObjectGroup();
-                SetMuralCheckpoint();
-                onLettersRequirementMet?.Invoke();
-                Debug.Log("벽화 조건 충족: 마리오 원더 연출 및 상호작용 완료");
-            });
+            transitionManager.StartTransition(this.transform, CompleteMuralInteraction);
         }
         else
         {
-            // 매니저를 안 넣었을 때를 대비한 예비 로직 (즉시 교체)
-            ActivateMuralBackground();
-            ActivateMuralObjectGroup();
-            SetMuralCheckpoint();
-            onLettersRequirementMet?.Invoke();
-            Debug.Log("벽화 조건 충족: 벽화 상호작용 완료 (연출 생략)");
+            CompleteMuralInteraction();
         }
+    }
+
+
+    private void CompleteMuralInteraction()
+    {
+        if (isCompleted)
+        {
+            return;
+        }
+
+        isCompleted = true;
+        isTransitioning = false;
+
+        StabilizeCurrentPlayerForWorldSwap();
+        ActivateMuralBackground();
+        ActivateMuralObjectGroup();
+        Physics2D.SyncTransforms();
+        StabilizeCurrentPlayerForWorldSwap();
+        SetMuralCheckpoint();
+        onLettersRequirementMet?.Invoke();
+        Debug.Log("벽화 조건 충족: 벽화 상호작용 완료");
     }
 
     private void OnTriggerEnter2D(Collider2D other)
@@ -125,6 +135,11 @@ public class MuralInteractTrigger : MonoBehaviour
 
         currentPlayerInventory = inventory;
         isPlayerInside = true;
+
+        if (isCompleted)
+        {
+            return;
+        }
 
         SetHintActive(interactHint, true);
         SetHintTransparency(interactHint, defaultInteractHintAlpha);
@@ -248,6 +263,24 @@ public class MuralInteractTrigger : MonoBehaviour
     private void ActivateMuralObjectGroup()
     {
         SetObjectPairActive(defaultObjectGroup, muralObjectGroup, true);
+    }
+
+
+    private void StabilizeCurrentPlayerForWorldSwap()
+    {
+        if (currentPlayerInventory == null)
+        {
+            return;
+        }
+
+        Rigidbody2D playerRigidbody = currentPlayerInventory.GetComponentInParent<Rigidbody2D>();
+        if (playerRigidbody == null)
+        {
+            return;
+        }
+
+        playerRigidbody.linearVelocity = Vector2.zero;
+        playerRigidbody.angularVelocity = 0f;
     }
 
     private void SetMuralCheckpoint()
