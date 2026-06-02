@@ -1,218 +1,314 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 public class MuralInteractTrigger : MonoBehaviour
 {
-    [Header("Transition Manager")]
-    [Tooltip("여기에 방금 만든 TransitionManager 오브젝트를 넣어주세요!")]
-    [SerializeField] private MuralTransitionManager transitionManager; // 🔥 새로 추가됨
+    public enum WorldTargetMode
+    {
+        ToMuralWorld,
+        ToDefaultWorld,
+        Toggle
+    }
 
+    [Header("Transition Manager")]
+    [Tooltip("원형 마스크/페이드 등 벽화 전환 연출을 담당하는 매니저입니다. 비워두면 즉시 전환합니다.")]
+    [SerializeField] private MuralTransitionManager transitionManager;
+
+    [Header("Interaction")]
     [SerializeField] private KeyCode interactKey = KeyCode.E;
     [SerializeField] private GameObject interactHint;
-    [SerializeField] private GameObject notEnoughLetterHint;
-    [SerializeField] private float notEnoughHintDuration = 1.2f;
-    [SerializeField] private bool consumeLettersOnUse = false;
-    [SerializeField, Min(0)] private int lettersToConsume = 3;
-    [SerializeField] private UnityEvent onLettersRequirementMet;
+
+    [Tooltip("이 벽화를 상호작용했을 때 전환될 목표 세계입니다. 현실→벽화 벽화는 ToMuralWorld, 벽화→현실 벽화는 ToDefaultWorld로 설정하세요.")]
+    [SerializeField] private WorldTargetMode targetMode = WorldTargetMode.ToMuralWorld;
+
+    [Tooltip("전환 도중 플레이어 속도를 0으로 만들어 끼임/튐을 줄입니다.")]
+    [SerializeField] private bool stabilizePlayerDuringSwap = true;
+
+    [Header("Initial State")]
+    [Tooltip("씬 시작 시 기본/벽화 배경과 오브젝트 그룹의 초기 상태를 이 스크립트가 세팅할지 여부입니다. 여러 벽화에 모두 켜면 서로 상태를 덮어쓸 수 있으니 보통 한 곳에서만 켜거나, 씬에서 직접 초기 상태를 세팅하세요.")]
+    [SerializeField] private bool initializeWorldStateOnAwake = false;
+
+    [Tooltip("초기 상태를 설정할 때 벽화 세계로 시작할지 여부입니다.")]
+    [SerializeField] private bool startInMuralWorld = false;
 
     [Header("Background Toggle")]
     [SerializeField] private GameObject defaultBackground;
     [SerializeField] private GameObject muralBackground;
 
     [Header("Object Toggle")]
-    [Tooltip("벽화 상호작용 전 활성화되어 있을 기존 발판/맵 한 덩이 오브젝트입니다.")]
+    [Tooltip("현실 세계에서 활성화될 발판/장애물/맵 오브젝트 그룹입니다.")]
     [SerializeField] private GameObject defaultObjectGroup;
-    [Tooltip("벽화 조건 만족 후 활성화할 새 발판/맵 한 덩이 오브젝트입니다.")]
+
+    [Tooltip("벽화 세계에서 활성화될 발판/장애물/맵 오브젝트 그룹입니다.")]
     [SerializeField] private GameObject muralObjectGroup;
 
     [Header("Checkpoint")]
-    [Tooltip("벽화 조건을 만족해 전환이 끝났을 때 플레이어의 세이브 포인트를 갱신합니다.")]
-    [SerializeField] private bool setCheckpointOnSuccess = true;
+    [Tooltip("전환이 끝났을 때 플레이어의 체크포인트를 갱신합니다.")]
+    [SerializeField] private bool setCheckpointOnTransition = true;
+
     [Tooltip("비워두면 이 벽화 오브젝트 위치가 세이브 포인트로 저장됩니다.")]
     [SerializeField] private Transform checkpointRespawnPoint;
 
     [Header("Interact Hint Transparency")]
     [SerializeField, Range(0f, 1f)] private float defaultInteractHintAlpha = 1f;
-    [SerializeField, Range(0f, 1f)] private float notEnoughInteractHintAlpha = 0.5f;
+    [SerializeField, Range(0f, 1f)] private float disabledInteractHintAlpha = 0.5f;
 
-    private PlayerLetterInventory currentPlayerInventory;
+    [Header("Events")]
+    [FormerlySerializedAs("onLettersRequirementMet")]
+    [SerializeField] private UnityEvent onTransitionCompleted;
+
+    private PlayController currentPlayer;
+    private Rigidbody2D currentPlayerRigidbody;
     private bool isPlayerInside;
     private bool isTransitioning;
-    private bool isCompleted;
-    private Coroutine notEnoughHintRoutine;
+    private Coroutine disabledHintRoutine;
 
     private void Awake()
     {
         SetHintActive(interactHint, false);
-        SetHintActive(notEnoughLetterHint, false);
         SetHintTransparency(interactHint, defaultInteractHintAlpha);
-        SetInitialBackgroundState();
-        SetInitialObjectGroupState();
+
+        if (initializeWorldStateOnAwake)
+        {
+            ApplyWorldState(startInMuralWorld);
+        }
     }
 
     private void Update()
     {
-        if (!isPlayerInside || currentPlayerInventory == null || isTransitioning || isCompleted)
-        {
+        if (!isPlayerInside || currentPlayer == null || isTransitioning)
             return;
-        }
 
         if (!Input.GetKeyDown(interactKey))
-        {
             return;
-        }
 
-        if (!currentPlayerInventory.HasRequiredLetters())
-        {
-            Debug.Log("벽화 조건 불충족");
-            ShowNotEnoughLetterHint();
-            return;
-        }
-
-        if (consumeLettersOnUse)
-        {
-            int consumeAmount = Mathf.Max(0, lettersToConsume);
-            bool consumed = currentPlayerInventory.ConsumeLetters(consumeAmount);
-
-            if (!consumed)
-            {
-                Debug.Log("벽화 조건 불충족");
-                ShowNotEnoughLetterHint();
-                return;
-            }
-        }
-
-        // --- 조건 만족 시점 ---
-        isTransitioning = true;
-        SetHintActive(interactHint, false);
-        SetHintTransparency(interactHint, defaultInteractHintAlpha);
-
-        if (transitionManager != null)
-        {
-            transitionManager.StartTransition(this.transform, CompleteMuralInteraction);
-        }
-        else
-        {
-            CompleteMuralInteraction();
-        }
-    }
-
-
-    private void CompleteMuralInteraction()
-    {
-        if (isCompleted)
-        {
-            return;
-        }
-
-        isCompleted = true;
-        isTransitioning = false;
-
-        StabilizeCurrentPlayerForWorldSwap();
-        ActivateMuralBackground();
-        ActivateMuralObjectGroup();
-        Physics2D.SyncTransforms();
-        StabilizeCurrentPlayerForWorldSwap();
-        SetMuralCheckpoint();
-        onLettersRequirementMet?.Invoke();
-        Debug.Log("벽화 조건 충족: 벽화 상호작용 완료");
+        StartWorldTransition();
     }
 
     private void OnTriggerEnter2D(Collider2D other)
     {
         if (other == null || !other.CompareTag("Player"))
-        {
             return;
-        }
 
-        PlayerLetterInventory inventory = other.GetComponentInParent<PlayerLetterInventory>();
-        if (inventory == null)
-        {
+        PlayController player = other.GetComponentInParent<PlayController>();
+        if (player == null)
             return;
-        }
 
-        currentPlayerInventory = inventory;
+        currentPlayer = player;
+        currentPlayerRigidbody = other.GetComponentInParent<Rigidbody2D>();
         isPlayerInside = true;
 
-        if (isCompleted)
-        {
-            return;
-        }
-
         SetHintActive(interactHint, true);
-        SetHintTransparency(interactHint, defaultInteractHintAlpha);
+        SetHintTransparency(interactHint, isTransitioning ? disabledInteractHintAlpha : defaultInteractHintAlpha);
+
+        TryRegisterPlayer(other);
+
+    }
+
+    private void OnTriggerStay2D(Collider2D other)
+    {
+        if (isPlayerInside && currentPlayer != null)
+            return;
+
+        TryRegisterPlayer(other);
+    }
+
+    private void TryRegisterPlayer(Collider2D other)
+    {
+        if (other == null || !other.CompareTag("Player"))
+            return;
+
+        PlayController player = other.GetComponentInParent<PlayController>();
+        if (player == null)
+            return;
+
+        currentPlayer = player;
+        currentPlayerRigidbody = other.GetComponentInParent<Rigidbody2D>();
+        isPlayerInside = true;
+
+        if (!isTransitioning)
+        {
+            SetHintActive(interactHint, true);
+            SetHintTransparency(interactHint, defaultInteractHintAlpha);
+        }
     }
 
     private void OnTriggerExit2D(Collider2D other)
     {
         if (other == null || !other.CompareTag("Player"))
+            return;
+
+        PlayController exitingPlayer = other.GetComponentInParent<PlayController>();
+
+        if (currentPlayer != null && exitingPlayer != currentPlayer)
+            return;
+
+        isPlayerInside = false;
+        currentPlayer = null;
+        currentPlayerRigidbody = null;
+
+        SetHintActive(interactHint, false);
+        SetHintTransparency(interactHint, defaultInteractHintAlpha);
+
+        if (disabledHintRoutine != null)
         {
+            StopCoroutine(disabledHintRoutine);
+            disabledHintRoutine = null;
+        }
+    }
+
+
+
+    private void StartWorldTransition()
+    {
+        if (isTransitioning)
+            return;
+
+        bool targetMuralActive = GetTargetMuralActive();
+
+        // 이미 목표 상태라면 중복 전환하지 않습니다.
+        if (IsAlreadyInTargetState(targetMuralActive))
+        {
+            Debug.Log("이미 목표 세계 상태입니다.");
             return;
         }
 
-        if (currentPlayerInventory != null)
-        {
-            PlayerLetterInventory exitingInventory = other.GetComponentInParent<PlayerLetterInventory>();
-            if (exitingInventory != currentPlayerInventory)
-            {
-                return;
-            }
-        }
-
-        isPlayerInside = false;
-        currentPlayerInventory = null;
-
+        isTransitioning = true;
         SetHintActive(interactHint, false);
-        SetHintActive(notEnoughLetterHint, false);
         SetHintTransparency(interactHint, defaultInteractHintAlpha);
 
-        if (notEnoughHintRoutine != null)
+        StabilizeCurrentPlayerForWorldSwap();
+
+        if (transitionManager != null)
         {
-            StopCoroutine(notEnoughHintRoutine);
-            notEnoughHintRoutine = null;
+            transitionManager.StartTransition(transform, () => CompleteWorldTransition(targetMuralActive));
+        }
+        else
+        {
+            CompleteWorldTransition(targetMuralActive);
         }
     }
 
-    private void ShowNotEnoughLetterHint()
+    private bool GetTargetMuralActive()
     {
-        if (notEnoughHintRoutine != null)
+        switch (targetMode)
         {
-            StopCoroutine(notEnoughHintRoutine);
-        }
+            case WorldTargetMode.ToMuralWorld:
+                return true;
 
-        notEnoughHintRoutine = StartCoroutine(ShowNotEnoughLetterHintRoutine());
+            case WorldTargetMode.ToDefaultWorld:
+                return false;
+
+            case WorldTargetMode.Toggle:
+                return !IsMuralWorldCurrentlyActive();
+
+            default:
+                return true;
+        }
     }
 
-    private IEnumerator ShowNotEnoughLetterHintRoutine()
+    private bool IsMuralWorldCurrentlyActive()
     {
-        SetHintActive(notEnoughLetterHint, true);
+        if (muralBackground != null)
+            return muralBackground.activeSelf;
 
-        // 조건 불충족 시 Interact Hint를 반투명하게 처리
-        SetHintTransparency(interactHint, notEnoughInteractHintAlpha);
+        if (muralObjectGroup != null)
+            return muralObjectGroup.activeSelf;
 
-        float duration = Mathf.Max(0f, notEnoughHintDuration);
+        if (defaultBackground != null)
+            return !defaultBackground.activeSelf;
 
-        if (duration > 0f)
+        if (defaultObjectGroup != null)
+            return !defaultObjectGroup.activeSelf;
+
+        return false;
+    }
+
+    private bool IsAlreadyInTargetState(bool targetMuralActive)
+    {
+        if (muralBackground != null)
+            return muralBackground.activeSelf == targetMuralActive;
+
+        if (muralObjectGroup != null)
+            return muralObjectGroup.activeSelf == targetMuralActive;
+
+        return false;
+    }
+
+    private void CompleteWorldTransition(bool muralActive)
+    {
+        StabilizeCurrentPlayerForWorldSwap();
+
+        ApplyWorldState(muralActive);
+
+        Physics2D.SyncTransforms();
+
+        StabilizeCurrentPlayerForWorldSwap();
+        SetMuralCheckpoint();
+
+        onTransitionCompleted?.Invoke();
+
+        isTransitioning = false;
+
+        if (isPlayerInside)
         {
-            yield return new WaitForSeconds(duration);
+            SetHintActive(interactHint, true);
+            SetHintTransparency(interactHint, defaultInteractHintAlpha);
         }
 
-        SetHintActive(notEnoughLetterHint, false);
+        Debug.Log(muralActive ? "벽화 세계로 전환 완료" : "현실 세계로 복귀 완료");
+    }
 
-        // 일정 시간 후 다시 기본 투명도로 복원
-        SetHintTransparency(interactHint, defaultInteractHintAlpha);
+    private void ApplyWorldState(bool muralActive)
+    {
+        SetObjectPairActive(defaultBackground, muralBackground, muralActive);
+        SetObjectPairActive(defaultObjectGroup, muralObjectGroup, muralActive);
+    }
 
-        notEnoughHintRoutine = null;
+    private void StabilizeCurrentPlayerForWorldSwap()
+    {
+        if (!stabilizePlayerDuringSwap)
+            return;
+
+        if (currentPlayerRigidbody == null && currentPlayer != null)
+            currentPlayerRigidbody = currentPlayer.GetComponentInParent<Rigidbody2D>();
+
+        if (currentPlayerRigidbody == null)
+            return;
+
+        currentPlayerRigidbody.linearVelocity = Vector2.zero;
+        currentPlayerRigidbody.angularVelocity = 0f;
+    }
+
+    private void SetMuralCheckpoint()
+    {
+        if (!setCheckpointOnTransition || currentPlayer == null)
+            return;
+
+        Vector3 checkpointPosition = checkpointRespawnPoint != null
+            ? checkpointRespawnPoint.position
+            : transform.position;
+
+        currentPlayer.SetCheckpoint(checkpointPosition);
+        Debug.Log("벽화 전환 세이브 포인트 저장: " + checkpointPosition);
+    }
+
+    private static void SetObjectPairActive(GameObject defaultObject, GameObject muralObject, bool muralActive)
+    {
+        if (defaultObject != null)
+            defaultObject.SetActive(!muralActive);
+
+        if (muralObject != null)
+            muralObject.SetActive(muralActive);
     }
 
     private static void SetHintActive(GameObject target, bool active)
     {
         if (target == null)
-        {
             return;
-        }
 
         target.SetActive(active);
     }
@@ -220,13 +316,10 @@ public class MuralInteractTrigger : MonoBehaviour
     private static void SetHintTransparency(GameObject target, float alpha)
     {
         if (target == null)
-        {
             return;
-        }
 
         alpha = Mathf.Clamp01(alpha);
 
-        // UI Image, Text 등에 적용
         Graphic[] graphics = target.GetComponentsInChildren<Graphic>(true);
         foreach (Graphic graphic in graphics)
         {
@@ -235,85 +328,12 @@ public class MuralInteractTrigger : MonoBehaviour
             graphic.color = color;
         }
 
-        // SpriteRenderer가 있는 오브젝트에도 적용
         SpriteRenderer[] spriteRenderers = target.GetComponentsInChildren<SpriteRenderer>(true);
         foreach (SpriteRenderer spriteRenderer in spriteRenderers)
         {
             Color color = spriteRenderer.color;
             color.a = alpha;
             spriteRenderer.color = color;
-        }
-    }
-
-    private void SetInitialBackgroundState()
-    {
-        SetObjectPairActive(defaultBackground, muralBackground, false);
-    }
-
-    private void ActivateMuralBackground()
-    {
-        SetObjectPairActive(defaultBackground, muralBackground, true);
-    }
-
-    private void SetInitialObjectGroupState()
-    {
-        SetObjectPairActive(defaultObjectGroup, muralObjectGroup, false);
-    }
-
-    private void ActivateMuralObjectGroup()
-    {
-        SetObjectPairActive(defaultObjectGroup, muralObjectGroup, true);
-    }
-
-
-    private void StabilizeCurrentPlayerForWorldSwap()
-    {
-        if (currentPlayerInventory == null)
-        {
-            return;
-        }
-
-        Rigidbody2D playerRigidbody = currentPlayerInventory.GetComponentInParent<Rigidbody2D>();
-        if (playerRigidbody == null)
-        {
-            return;
-        }
-
-        playerRigidbody.linearVelocity = Vector2.zero;
-        playerRigidbody.angularVelocity = 0f;
-    }
-
-    private void SetMuralCheckpoint()
-    {
-        if (!setCheckpointOnSuccess || currentPlayerInventory == null)
-        {
-            return;
-        }
-
-        PlayController player = currentPlayerInventory.GetComponentInParent<PlayController>();
-        if (player == null)
-        {
-            return;
-        }
-
-        Vector3 checkpointPosition = checkpointRespawnPoint != null
-            ? checkpointRespawnPoint.position
-            : transform.position;
-
-        player.SetCheckpoint(checkpointPosition);
-        Debug.Log("벽화 세이브 포인트 저장: " + checkpointPosition);
-    }
-
-    private static void SetObjectPairActive(GameObject defaultObject, GameObject muralObject, bool muralActive)
-    {
-        if (defaultObject != null)
-        {
-            defaultObject.SetActive(!muralActive);
-        }
-
-        if (muralObject != null)
-        {
-            muralObject.SetActive(muralActive);
         }
     }
 }

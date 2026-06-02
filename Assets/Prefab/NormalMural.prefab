@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1 &3604119629175673301
+--- !u!1 &1136007046310673342
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -8,8 +8,8 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 6428743897161802914}
-  - component: {fileID: 7485787499642532033}
+  - component: {fileID: 7516200721396127488}
+  - component: {fileID: 6577998703438336996}
   m_Layer: 0
   m_Name: E_key_0
   m_TagString: Untagged
@@ -17,29 +17,29 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &6428743897161802914
+--- !u!4 &7516200721396127488
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3604119629175673301}
+  m_GameObject: {fileID: 1136007046310673342}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 5.26, z: 0}
-  m_LocalScale: {x: 5, y: 5, z: 1}
+  m_LocalPosition: {x: 0, y: 0.99, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 1444468311869631629}
+  m_Father: {fileID: 6774825360390146006}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!212 &7485787499642532033
+--- !u!212 &6577998703438336996
 SpriteRenderer:
   serializedVersion: 2
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3604119629175673301}
+  m_GameObject: {fileID: 1136007046310673342}
   m_Enabled: 1
   m_CastShadows: 0
   m_ReceiveShadows: 0
@@ -91,7 +91,7 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
---- !u!1 &3985219637207297370
+--- !u!1 &9078316187023146525
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -99,41 +99,41 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 1444468311869631629}
-  - component: {fileID: 1082775484611574294}
-  - component: {fileID: 5315808664446496289}
-  - component: {fileID: 6570156723804923203}
+  - component: {fileID: 6774825360390146006}
+  - component: {fileID: 6195564836805364816}
+  - component: {fileID: 3945826909619447762}
+  - component: {fileID: 1222205194729764516}
   m_Layer: 0
-  m_Name: bg_stage1_mural_0
+  m_Name: NormalMural
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &1444468311869631629
+--- !u!4 &6774825360390146006
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3985219637207297370}
+  m_GameObject: {fileID: 9078316187023146525}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -136.1595, y: -239.92618, z: 0}
-  m_LocalScale: {x: 0.3, y: 0.3, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_LocalPosition: {x: -133.03, y: -239.94, z: 0}
+  m_LocalScale: {x: 1.5, y: 1.5, z: 1.5}
+  m_ConstrainProportionsScale: 1
   m_Children:
-  - {fileID: 6428743897161802914}
+  - {fileID: 7516200721396127488}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!212 &1082775484611574294
+--- !u!212 &6195564836805364816
 SpriteRenderer:
   serializedVersion: 2
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3985219637207297370}
+  m_GameObject: {fileID: 9078316187023146525}
   m_Enabled: 1
   m_CastShadows: 0
   m_ReceiveShadows: 0
@@ -175,23 +175,23 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_MaskInteraction: 0
-  m_Sprite: {fileID: -1772964745953309517, guid: 4be31fc890d24454ebc979e5f520eeed, type: 3}
+  m_Sprite: {fileID: 21300000, guid: e6330214701dbbf439045c1f0f5bc70a, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 16.2, y: 6.99}
+  m_Size: {x: 3.18, y: 1.54}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
---- !u!61 &5315808664446496289
+--- !u!61 &3945826909619447762
 BoxCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3985219637207297370}
+  m_GameObject: {fileID: 9078316187023146525}
   m_Enabled: 1
   serializedVersion: 3
   m_Density: 1
@@ -219,25 +219,25 @@ BoxCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0, y: 0}
+  m_Offset: {x: 0.034999132, y: -0.023330808}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 16.2, y: 6.99}
-    newSize: {x: 16.2, y: 6.99}
+    oldSize: {x: 3.18, y: 1.54}
+    newSize: {x: 3.18, y: 1.54}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 16.2, y: 6.99}
+  m_Size: {x: 2.8782039, y: 1.5306351}
   m_EdgeRadius: 0
---- !u!114 &6570156723804923203
+--- !u!114 &1222205194729764516
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3985219637207297370}
+  m_GameObject: {fileID: 9078316187023146525}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 27d92f745830bdc46b2e90abaf89a66c, type: 3}
@@ -245,10 +245,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MuralInteractTrigger
   transitionManager: {fileID: 0}
   interactKey: 101
-  interactHint: {fileID: 3604119629175673301}
-  targetMode: 0
+  interactHint: {fileID: 0}
+  targetMode: 1
   stabilizePlayerDuringSwap: 1
-  initializeWorldStateOnAwake: 1
+  initializeWorldStateOnAwake: 0
   startInMuralWorld: 0
   defaultBackground: {fileID: 0}
   muralBackground: {fileID: 0}

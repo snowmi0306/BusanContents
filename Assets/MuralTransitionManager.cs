@@ -1,234 +1,373 @@
+using System;
+using System.Collections;
+using DG.Tweening;
 using UnityEngine;
 using UnityEngine.UI;
-using DG.Tweening;
-using System;
 
 public class MuralTransitionManager : MonoBehaviour
 {
-    private static readonly int CenterPosId = Shader.PropertyToID("_CenterPos");
-    private static readonly int RadiusId = Shader.PropertyToID("_Radius");
+    [Header("Mask Transition UI")]
+    [SerializeField] private GameObject transitionRoot;
+    [SerializeField] private RawImage oldScreenImage;
+    [SerializeField] private RectTransform circleMaskRoot;
+    [SerializeField] private RawImage muralScreenImage;
 
-    [Header("전환 연출 UI")]
-    [Tooltip("셰이더가 들어간 RawImage입니다. 화면 전체를 덮도록 배치해주세요.")]
-    public RawImage transitionRawImage;
+    [Header("Canvas")]
+    [SerializeField] private Canvas transitionCanvas;
 
-    [Tooltip("RawImage에 들어있는 매테리얼입니다. 비워두면 RawImage.material을 자동으로 사용합니다.")]
-    public Material maskMaterial;
+    [Header("Camera")]
+    [SerializeField] private Camera mainCamera;
 
-    [Header("카메라 세팅")]
-    public Camera mainCamera;
+    [Tooltip("벽화 상태 화면을 RenderTexture로 찍는 카메라입니다. targetTexture가 반드시 있어야 합니다.")]
+    [SerializeField] private Camera muralCamera;
 
-    [Tooltip("RenderTexture를 쓰는 별도 벽화 카메라입니다. 기본 전환에서는 켜지지 않도록 둡니다.")]
-    public Camera muralCamera;
+    [Header("Animation")]
+    [SerializeField] private float transitionDuration = 1.2f;
+    [SerializeField] private float finalDiameterMultiplier = 1.25f;
+    [SerializeField] private Ease maskEase = Ease.OutCubic;
+    [SerializeField] private bool useUnscaledTime = true;
 
-    [Header("연출 설정")]
-    public float transitionDuration = 1.5f; // 원이 퍼져나가는 시간
-    [SerializeField] private bool playShaderTransition = false;
-    [SerializeField] private float maxRadius = 1.5f;
-    [SerializeField] private bool swapBeforeTransitionEffect = true;
-    [SerializeField] private bool useMuralCameraTexture = false;
-
-    private Material runtimeMaskMaterial;
-    private Texture originalTransitionTexture;
-    private Tween radiusTween;
+    private Tween maskTween;
+    private Texture2D oldScreenTexture;
     private bool completionInvoked;
+    private bool isTransitioning;
 
     private void Awake()
     {
-        InitializeRuntimeMaterial();
-        SetTransitionImageActive(false);
+        if (mainCamera == null)
+            mainCamera = Camera.main;
+
+        if (transitionCanvas == null && transitionRoot != null)
+            transitionCanvas = transitionRoot.GetComponentInParent<Canvas>();
+
+        SetTransitionRootActive(false);
+
+        if (muralCamera != null)
+            muralCamera.gameObject.SetActive(false);
+
+        if (oldScreenImage != null)
+            oldScreenImage.raycastTarget = false;
+
+        if (muralScreenImage != null)
+            muralScreenImage.raycastTarget = false;
     }
 
     private void OnDestroy()
     {
-        radiusTween?.Kill();
-
-        if (runtimeMaskMaterial != null)
-        {
-            Destroy(runtimeMaskMaterial);
-        }
+        maskTween?.Kill();
+        CleanupCapturedTexture();
     }
 
 #if UNITY_EDITOR
     private void OnValidate()
     {
-        if (transitionRawImage != null && maskMaterial == null)
-        {
-            maskMaterial = transitionRawImage.material;
-        }
+        if (mainCamera == null)
+            mainCamera = Camera.main;
+
+        if (transitionCanvas == null && transitionRoot != null)
+            transitionCanvas = transitionRoot.GetComponentInParent<Canvas>();
     }
 #endif
 
-    // 단디가 벽화 앞에서 상호작용할 때 이 함수를 호출해주세요.
-    // 매개변수 muralTransform에는 상호작용하는 '해당 벽화의 Transform'을 넘겨줍니다.
-    // Action onComplete를 통해 연출이 다 끝난 시점을 상호작용 스크립트에 알려줍니다.
+    /// <summary>
+    /// 벽화 상호작용 시 호출.
+    /// muralTransform: 원형 전환이 시작될 벽화 위치.
+    /// onComplete: 실제 월드를 벽화 상태로 바꾸는 콜백.
+    /// </summary>
     public void StartTransition(Transform muralTransform, Action onComplete = null)
     {
+        if (isTransitioning)
+            return;
+
         if (!CanPlayTransition(muralTransform))
         {
             onComplete?.Invoke();
             return;
         }
 
-        if (!playShaderTransition)
-        {
-            StopTransitionVisuals();
-            onComplete?.Invoke();
-            return;
-        }
-
-        InitializeRuntimeMaterial();
-
-        if (runtimeMaskMaterial == null || !runtimeMaskMaterial.HasProperty(CenterPosId) || !runtimeMaskMaterial.HasProperty(RadiusId))
-        {
-            Debug.LogWarning("벽화 전환 매테리얼에 _CenterPos 또는 _Radius 프로퍼티가 없어 연출을 건너뜁니다.", this);
-            StopTransitionVisuals();
-            onComplete?.Invoke();
-            return;
-        }
-
-        radiusTween?.Kill();
-
-        completionInvoked = false;
-
-        if (useMuralCameraTexture && muralCamera != null)
-        {
-            transitionRawImage.texture = originalTransitionTexture;
-            SyncMuralCameraToMainCamera();
-            muralCamera.gameObject.SetActive(true);
-        }
-        else
-        {
-            transitionRawImage.texture = Texture2D.whiteTexture;
-
-            if (muralCamera != null)
-            {
-                muralCamera.gameObject.SetActive(false);
-            }
-        }
-
-        Vector3 viewportPos = mainCamera.WorldToViewportPoint(muralTransform.position);
-        Vector2 normalizedPos = new Vector2(
-            Mathf.Clamp01(viewportPos.x),
-            Mathf.Clamp01(viewportPos.y)
-        );
-
-        runtimeMaskMaterial.SetVector(CenterPosId, new Vector4(normalizedPos.x, normalizedPos.y, 0f, 0f));
-        runtimeMaskMaterial.SetFloat(RadiusId, 0f);
-
-        // 실제 벽화 상태는 먼저 바꿔 둡니다. 그래야 RenderTexture/보조 카메라가 잠깐 보이며
-        // 이상한 색 화면이 뜬 뒤 바뀌는 느낌 없이, 메인 카메라 화면 기준으로 바로 전환됩니다.
-        if (swapBeforeTransitionEffect)
-        {
-            InvokeCompletion(onComplete);
-        }
-
-        SetTransitionImageActive(true);
-
-        radiusTween = DOTween.To(
-                () => runtimeMaskMaterial.GetFloat(RadiusId),
-                radius => runtimeMaskMaterial.SetFloat(RadiusId, radius),
-                maxRadius,
-                Mathf.Max(0.01f, transitionDuration)
-            )
-            .SetEase(Ease.OutBack)
-            .SetTarget(this)
-            .OnComplete(() => CompleteTransition(onComplete));
+        StartCoroutine(TransitionRoutine(muralTransform, onComplete));
     }
 
-    private void InitializeRuntimeMaterial()
+    private IEnumerator TransitionRoutine(Transform muralTransform, Action onComplete)
     {
-        if (transitionRawImage == null || runtimeMaskMaterial != null)
+        isTransitioning = true;
+        completionInvoked = false;
+
+        maskTween?.Kill();
+        CleanupCapturedTexture();
+
+        SetTransitionRootActive(false);
+
+        // 1. 기존 화면 캡처.
+        yield return new WaitForEndOfFrame();
+        oldScreenTexture = ScreenCapture.CaptureScreenshotAsTexture();
+
+        // 2. 기존 화면을 UI로 덮음.
+        PrepareOldScreenImage(oldScreenTexture);
+        PrepareCircleMask(muralTransform);
+        SetTransitionRootActive(true);
+
+        if (circleMaskRoot != null)
+            circleMaskRoot.gameObject.SetActive(false);
+
+        // 3. 실제 월드를 벽화 상태로 변경.
+        //    예: 기본 오브젝트 OFF, 벽화 오브젝트 ON.
+        InvokeCompletion(onComplete);
+
+        // 4. 벽화 상태 화면을 RenderTexture로 렌더링.
+        PrepareMuralCamera();
+        PrepareMuralScreenImage();
+
+        // 5. 마스크 표시 시작.
+        if (circleMaskRoot != null)
         {
-            return;
+            circleMaskRoot.sizeDelta = Vector2.zero;
+            circleMaskRoot.gameObject.SetActive(true);
         }
 
-        originalTransitionTexture = transitionRawImage.texture;
+        float finalDiameter = GetFinalMaskDiameter();
 
-        Material sourceMaterial = maskMaterial != null ? maskMaterial : transitionRawImage.material;
-        if (sourceMaterial == null)
-        {
-            return;
-        }
+        bool tweenComplete = false;
 
-        runtimeMaskMaterial = Instantiate(sourceMaterial);
-        runtimeMaskMaterial.name = sourceMaterial.name + " (Runtime)";
-        transitionRawImage.material = runtimeMaskMaterial;
-        maskMaterial = runtimeMaskMaterial;
+        maskTween = circleMaskRoot
+            .DOSizeDelta(new Vector2(finalDiameter, finalDiameter), Mathf.Max(0.01f, transitionDuration))
+            .SetEase(maskEase)
+            .SetUpdate(useUnscaledTime)
+            .SetTarget(this)
+            .OnComplete(() => tweenComplete = true);
+
+        while (!tweenComplete)
+            yield return null;
+
+        // 6. 전환 UI 정리.
+        StopTransitionVisuals();
+
+        isTransitioning = false;
     }
 
     private bool CanPlayTransition(Transform muralTransform)
     {
         if (muralTransform == null)
         {
-            Debug.LogWarning("벽화 전환을 시작할 Transform이 없습니다.", this);
+            Debug.LogWarning("벽화 전환 시작 위치 muralTransform이 없습니다.", this);
             return false;
         }
 
-        if (transitionRawImage == null)
+        if (transitionRoot == null)
         {
-            Debug.LogWarning("벽화 전환 RawImage가 연결되어 있지 않아 연출을 건너뜁니다.", this);
+            Debug.LogWarning("MuralTransitionRoot가 연결되어 있지 않습니다.", this);
+            return false;
+        }
+
+        if (oldScreenImage == null)
+        {
+            Debug.LogWarning("OldScreenImage가 연결되어 있지 않습니다.", this);
+            return false;
+        }
+
+        if (circleMaskRoot == null)
+        {
+            Debug.LogWarning("CircleMaskRoot가 연결되어 있지 않습니다.", this);
+            return false;
+        }
+
+        if (muralScreenImage == null)
+        {
+            Debug.LogWarning("MuralScreenImage가 연결되어 있지 않습니다.", this);
             return false;
         }
 
         if (mainCamera == null)
         {
-            Debug.LogWarning("벽화 전환 Main Camera가 연결되어 있지 않아 연출을 건너뜁니다.", this);
+            mainCamera = Camera.main;
+        }
+
+        if (mainCamera == null)
+        {
+            Debug.LogWarning("Main Camera가 연결되어 있지 않습니다.", this);
+            return false;
+        }
+
+        if (muralCamera == null)
+        {
+            Debug.LogWarning("Mural Camera가 연결되어 있지 않습니다.", this);
+            return false;
+        }
+
+        if (muralCamera.targetTexture == null)
+        {
+            Debug.LogWarning("Mural Camera에 targetTexture가 없습니다. RenderTexture를 연결해야 합니다.", this);
+            return false;
+        }
+
+        if (transitionCanvas == null)
+        {
+            transitionCanvas = transitionRoot.GetComponentInParent<Canvas>();
+        }
+
+        if (transitionCanvas == null)
+        {
+            Debug.LogWarning("MuralTransitionCanvas를 찾을 수 없습니다.", this);
             return false;
         }
 
         return true;
     }
 
-    private void CompleteTransition(Action onComplete)
+    private void PrepareOldScreenImage(Texture texture)
     {
-        InvokeCompletion(onComplete);
-        StopTransitionVisuals();
+        oldScreenImage.texture = texture;
 
-        radiusTween = null;
+        RectTransform rect = oldScreenImage.rectTransform;
+        rect.anchorMin = Vector2.zero;
+        rect.anchorMax = Vector2.one;
+        rect.offsetMin = Vector2.zero;
+        rect.offsetMax = Vector2.zero;
+        rect.pivot = new Vector2(0.5f, 0.5f);
     }
 
-    private void StopTransitionVisuals()
+    private void PrepareCircleMask(Transform muralTransform)
     {
-        SetTransitionImageActive(false);
+        Vector2 maskPosition = WorldToMaskParentLocalPosition(muralTransform.position);
 
-        if (muralCamera != null)
-        {
-            muralCamera.gameObject.SetActive(false);
-        }
+        circleMaskRoot.anchoredPosition = maskPosition;
+        circleMaskRoot.sizeDelta = Vector2.zero;
+
+        RectTransform muralRect = muralScreenImage.rectTransform;
+        Vector2 canvasSize = GetMaskParentSize();
+
+        muralRect.anchorMin = new Vector2(0.5f, 0.5f);
+        muralRect.anchorMax = new Vector2(0.5f, 0.5f);
+        muralRect.pivot = new Vector2(0.5f, 0.5f);
+
+        // 전체 화면 크기의 벽화 화면을 마스크 안에 넣음.
+        muralRect.sizeDelta = canvasSize;
+
+        // 마스크가 중앙이 아닌 벽화 위치에서 시작하므로,
+        // 자식 이미지는 반대 방향으로 밀어야 화면 정렬이 맞음.
+        muralRect.anchoredPosition = -maskPosition;
     }
 
-    private void InvokeCompletion(Action onComplete)
+    private void PrepareMuralCamera()
     {
-        if (completionInvoked)
-        {
-            return;
-        }
+        SyncMuralCameraToMainCamera();
 
-        completionInvoked = true;
-        onComplete?.Invoke();
+        muralCamera.gameObject.SetActive(true);
+
+        // targetTexture에 현재 벽화 상태 월드를 렌더링.
+        muralCamera.Render();
+    }
+
+    private void PrepareMuralScreenImage()
+    {
+        muralScreenImage.texture = muralCamera.targetTexture;
+    }
+
+    private Vector2 WorldToMaskParentLocalPosition(Vector3 worldPosition)
+    {
+        RectTransform parentRect = circleMaskRoot.parent as RectTransform;
+
+        if (parentRect == null)
+            parentRect = transitionRoot.transform as RectTransform;
+
+        Vector2 screenPoint = RectTransformUtility.WorldToScreenPoint(mainCamera, worldPosition);
+
+        Camera uiCamera = transitionCanvas.renderMode == RenderMode.ScreenSpaceOverlay
+            ? null
+            : transitionCanvas.worldCamera;
+
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(
+            parentRect,
+            screenPoint,
+            uiCamera,
+            out Vector2 localPoint
+        );
+
+        return localPoint;
+    }
+
+    private Vector2 GetMaskParentSize()
+    {
+        RectTransform parentRect = circleMaskRoot.parent as RectTransform;
+
+        if (parentRect != null)
+            return parentRect.rect.size;
+
+        RectTransform rootRect = transitionRoot.transform as RectTransform;
+
+        if (rootRect != null)
+            return rootRect.rect.size;
+
+        return new Vector2(Screen.width, Screen.height);
+    }
+
+    private float GetFinalMaskDiameter()
+    {
+        Vector2 size = GetMaskParentSize();
+        float diagonal = Mathf.Sqrt(size.x * size.x + size.y * size.y);
+        return diagonal * Mathf.Max(1f, finalDiameterMultiplier);
     }
 
     private void SyncMuralCameraToMainCamera()
     {
         if (mainCamera == null || muralCamera == null)
-        {
             return;
-        }
 
-        muralCamera.transform.SetPositionAndRotation(mainCamera.transform.position, mainCamera.transform.rotation);
+        muralCamera.transform.SetPositionAndRotation(
+            mainCamera.transform.position,
+            mainCamera.transform.rotation
+        );
+
         muralCamera.orthographic = mainCamera.orthographic;
         muralCamera.orthographicSize = mainCamera.orthographicSize;
         muralCamera.fieldOfView = mainCamera.fieldOfView;
+        muralCamera.nearClipPlane = mainCamera.nearClipPlane;
+        muralCamera.farClipPlane = mainCamera.farClipPlane;
+        muralCamera.clearFlags = mainCamera.clearFlags;
+        muralCamera.backgroundColor = mainCamera.backgroundColor;
+        muralCamera.cullingMask = mainCamera.cullingMask;
     }
 
-    private void SetTransitionImageActive(bool isActive)
+    private void StopTransitionVisuals()
     {
-        if (transitionRawImage == null)
-        {
-            return;
-        }
+        maskTween?.Kill();
+        maskTween = null;
 
-        transitionRawImage.gameObject.SetActive(isActive);
+        SetTransitionRootActive(false);
+
+        if (muralCamera != null)
+            muralCamera.gameObject.SetActive(false);
+
+        if (oldScreenImage != null)
+            oldScreenImage.texture = null;
+
+        if (muralScreenImage != null)
+            muralScreenImage.texture = null;
+
+        CleanupCapturedTexture();
+    }
+
+    private void CleanupCapturedTexture()
+    {
+        if (oldScreenTexture == null)
+            return;
+
+        Destroy(oldScreenTexture);
+        oldScreenTexture = null;
+    }
+
+    private void InvokeCompletion(Action onComplete)
+    {
+        if (completionInvoked)
+            return;
+
+        completionInvoked = true;
+        onComplete?.Invoke();
+    }
+
+    private void SetTransitionRootActive(bool isActive)
+    {
+        if (transitionRoot != null)
+            transitionRoot.SetActive(isActive);
     }
 }
