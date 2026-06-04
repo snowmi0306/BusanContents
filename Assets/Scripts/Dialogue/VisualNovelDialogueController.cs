@@ -40,6 +40,7 @@ public class VisualNovelDialogueController : MonoBehaviour
     private bool isTyping;
     private string currentFullText = string.Empty;
     private GameObject currentPlayerObject;
+    private GameObject dialogueRootActivatedForCurrentDialogue;
     private bool previousCursorVisible;
     private CursorLockMode previousCursorLockState;
 
@@ -123,10 +124,7 @@ public class VisualNovelDialogueController : MonoBehaviour
         isTyping = false;
         currentFullText = string.Empty;
 
-        if (dialoguePanel != null)
-        {
-            dialoguePanel.SetActive(true);
-        }
+        SetDialoguePanelActive(true);
 
         DisablePlayerControl(currentPlayerObject);
         ShowCursorForDialogue();
@@ -228,10 +226,7 @@ public class VisualNovelDialogueController : MonoBehaviour
         currentLines = null;
         currentFullText = string.Empty;
 
-        if (dialoguePanel != null)
-        {
-            dialoguePanel.SetActive(false);
-        }
+        SetDialoguePanelActive(false);
 
         EnablePlayerControl(currentPlayerObject);
         RestoreCursorIfNeeded();
@@ -469,6 +464,46 @@ public class VisualNovelDialogueController : MonoBehaviour
         {
             dialogueText.text = value ?? string.Empty;
         }
+    }
+
+    private void SetDialoguePanelActive(bool active)
+    {
+        if (dialoguePanel == null)
+            return;
+
+        if (active)
+        {
+            dialogueRootActivatedForCurrentDialogue = null;
+            GameObject dialogueRoot = GetDialogueRootObject();
+            if (dialogueRoot != null && !dialogueRoot.activeSelf)
+            {
+                dialogueRootActivatedForCurrentDialogue = dialogueRoot;
+                dialogueRoot.SetActive(true);
+            }
+
+            dialoguePanel.SetActive(true);
+            return;
+        }
+
+        dialoguePanel.SetActive(false);
+
+        if (dialogueRootActivatedForCurrentDialogue != null)
+        {
+            dialogueRootActivatedForCurrentDialogue.SetActive(false);
+            dialogueRootActivatedForCurrentDialogue = null;
+        }
+    }
+
+    private GameObject GetDialogueRootObject()
+    {
+        Canvas parentCanvas = dialoguePanel.GetComponentInParent<Canvas>(true);
+        if (parentCanvas != null)
+        {
+            return parentCanvas.gameObject;
+        }
+
+        Transform parent = dialoguePanel.transform.parent;
+        return parent != null ? parent.gameObject : dialoguePanel;
     }
 
     private void RegisterNextButtonListener()
