@@ -13741,62 +13741,57 @@ PrefabInstance:
       propertyPath: m_SortingOrder
       value: 10
       objectReference: {fileID: 0}
-    - target: {fileID: 7568634346630669423, guid: 22aaee9341ed24945a98538a8389beba, type: 3}
-      propertyPath: nextSceneName
-      value: Stage2
-      objectReference: {fileID: 0}
-    - target: {fileID: 8939016824696179771, guid: 22aaee9341ed24945a98538a8389beba, type: 3}
+    - target: {fileID: 4110524559377693115, guid: 22aaee9341ed24945a98538a8389beba, type: 3}
       propertyPath: nextSceneName
       value: Stage3
       objectReference: {fileID: 0}
-    - target: {fileID: 8939016824696179771, guid: 22aaee9341ed24945a98538a8389beba, type: 3}
+    - target: {fileID: 4110524559377693115, guid: 22aaee9341ed24945a98538a8389beba, type: 3}
       propertyPath: npcPortraitSprite
       value: 
       objectReference: {fileID: -4636557201241210594, guid: 6685f1fa39b59e64a962808433c385e2, type: 3}
-    - target: {fileID: 8939016824696179771, guid: 22aaee9341ed24945a98538a8389beba, type: 3}
+    - target: {fileID: 4110524559377693115, guid: 22aaee9341ed24945a98538a8389beba, type: 3}
       propertyPath: dialogueController
       value: 
       objectReference: {fileID: 742859384}
-    - target: {fileID: 8939016824696179771, guid: 22aaee9341ed24945a98538a8389beba, type: 3}
+    - target: {fileID: 4110524559377693115, guid: 22aaee9341ed24945a98538a8389beba, type: 3}
       propertyPath: requireInteractKey
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 8939016824696179771, guid: 22aaee9341ed24945a98538a8389beba, type: 3}
+    - target: {fileID: 4110524559377693115, guid: 22aaee9341ed24945a98538a8389beba, type: 3}
       propertyPath: dandiPortraitSprite
       value: 
       objectReference: {fileID: 4541870877151443678, guid: 53f875dce4adf1d41a63cb3916be6ab7, type: 3}
-    - target: {fileID: 8939016824696179771, guid: 22aaee9341ed24945a98538a8389beba, type: 3}
+    - target: {fileID: 4110524559377693115, guid: 22aaee9341ed24945a98538a8389beba, type: 3}
       propertyPath: dialogueLines.Array.size
       value: 3
       objectReference: {fileID: 0}
-    - target: {fileID: 8939016824696179771, guid: 22aaee9341ed24945a98538a8389beba, type: 3}
+    - target: {fileID: 4110524559377693115, guid: 22aaee9341ed24945a98538a8389beba, type: 3}
       propertyPath: dialogueLines.Array.data[0].text
-      value: "\uB4DC\uB514\uC5B4 \uBAA9\uC801\uC9C0\uC5D0 \uB3C4\uCC29\uD588\uC5B4!"
+      value: "\ub4dc\ub514\uc5b4 \ubaa9\uc801\uc9c0\uc5d0 \ub3c4\ucc29\ud588\uc5b4!"
       objectReference: {fileID: 0}
-    - target: {fileID: 8939016824696179771, guid: 22aaee9341ed24945a98538a8389beba, type: 3}
+    - target: {fileID: 4110524559377693115, guid: 22aaee9341ed24945a98538a8389beba, type: 3}
       propertyPath: dialogueLines.Array.data[1].text
-      value: "\uC640\uC918\uC11C \uACE0\uB9C8\uC6CC. \uC774 \uD3B8\uC9C0\uB97C \uAE30\uB2E4\uB9AC\uACE0
-        \uC788\uC5C8\uC5B4."
+      value: "\uc640\uc918\uc11c \uace0\ub9c8\uc6cc. \uc774 \ud3b8\uc9c0\ub97c \uae30\ub2e4\ub9ac\uace0 \uc788\uc5c8\uc5b4."
       objectReference: {fileID: 0}
-    - target: {fileID: 8939016824696179771, guid: 22aaee9341ed24945a98538a8389beba, type: 3}
+    - target: {fileID: 4110524559377693115, guid: 22aaee9341ed24945a98538a8389beba, type: 3}
       propertyPath: dialogueLines.Array.data[2].text
-      value: "\uB2E4\uC74C \uC7A5\uC18C\uB85C \uAC00\uBCF4\uC790!"
+      value: "\ub2e4\uc74c \uc7a5\uc18c\ub85c \uac00\ubcf4\uc790!"
       objectReference: {fileID: 0}
-    - target: {fileID: 8939016824696179771, guid: 22aaee9341ed24945a98538a8389beba, type: 3}
+    - target: {fileID: 4110524559377693115, guid: 22aaee9341ed24945a98538a8389beba, type: 3}
       propertyPath: dialogueLines.Array.data[1].speaker
       value: 1
       objectReference: {fileID: 0}
-    - target: {fileID: 8939016824696179771, guid: 22aaee9341ed24945a98538a8389beba, type: 3}
+    - target: {fileID: 4110524559377693115, guid: 22aaee9341ed24945a98538a8389beba, type: 3}
       propertyPath: dialogueLines.Array.data[0].speakerName
-      value: "\uB2E8\uB514"
+      value: "\ub2e8\ub514"
       objectReference: {fileID: 0}
-    - target: {fileID: 8939016824696179771, guid: 22aaee9341ed24945a98538a8389beba, type: 3}
+    - target: {fileID: 4110524559377693115, guid: 22aaee9341ed24945a98538a8389beba, type: 3}
       propertyPath: dialogueLines.Array.data[1].speakerName
-      value: "\uD560\uC544\uBC84\uC9C0"
+      value: "\ud560\uc544\ubc84\uc9c0"
       objectReference: {fileID: 0}
-    - target: {fileID: 8939016824696179771, guid: 22aaee9341ed24945a98538a8389beba, type: 3}
+    - target: {fileID: 4110524559377693115, guid: 22aaee9341ed24945a98538a8389beba, type: 3}
       propertyPath: dialogueLines.Array.data[2].speakerName
-      value: "\uB2E8\uB514"
+      value: "\ub2e8\ub514"
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
