@@ -98,6 +98,14 @@ public class StageGoal : MonoBehaviour
         StartClearFlow();
     }
 
+    private void OnTriggerStay2D(Collider2D other)
+    {
+        if (isCleared || playerInRange)
+            return;
+
+        OnTriggerEnter2D(other);
+    }
+
     private void OnTriggerExit2D(Collider2D other)
     {
         GameObject exitingPlayerObject = GetPlayerObject(other);
