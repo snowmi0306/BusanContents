@@ -13,6 +13,16 @@ public class StageGoal : MonoBehaviour
     [SerializeField] private bool disablePlayerControl = true;
     [SerializeField] private float loadDelayAfterDialogue = 0.5f;
 
+    [Header("Letter Requirement")]
+    [SerializeField] private bool requireLetters = false;
+    [SerializeField, Min(0)] private int lettersToDeliver = 0;
+    [SerializeField] private bool consumeDeliveredLetters = false;
+
+    [Header("Letter Handoff")]
+    [SerializeField] private bool playLetterHandoff = true;
+    [SerializeField] private LetterHandoffWorldAnimator letterHandoffAnimator;
+    [SerializeField] private Transform npcHandoffTarget;
+
     [Header("Visual Novel Dialogue")]
     [SerializeField] private bool useDialogueBeforeClear = true;
     [SerializeField] private VisualNovelDialogueController dialogueController;
@@ -28,6 +38,7 @@ public class StageGoal : MonoBehaviour
     private bool isCleared;
     private bool playerInRange;
     private GameObject currentPlayerObject;
+    private PlayerLetterInventory currentPlayerInventory;
 
     private void Awake()
     {
@@ -45,6 +56,11 @@ public class StageGoal : MonoBehaviour
         if (transitionPanel != null)
         {
             transitionPanel.SetActive(false);
+        }
+
+        if (npcHandoffTarget == null)
+        {
+            npcHandoffTarget = transform;
         }
     }
 
@@ -64,10 +80,13 @@ public class StageGoal : MonoBehaviour
         if (isCleared)
             return;
 
-        if (!other.CompareTag("Player"))
+        currentPlayerObject = GetPlayerObject(other);
+        if (currentPlayerObject == null || !currentPlayerObject.CompareTag("Player"))
             return;
 
-        currentPlayerObject = GetPlayerObject(other);
+        currentPlayerInventory = currentPlayerObject != null
+            ? currentPlayerObject.GetComponentInParent<PlayerLetterInventory>()
+            : other.GetComponentInParent<PlayerLetterInventory>();
         playerInRange = true;
 
         if (requireInteractKey)
@@ -81,7 +100,8 @@ public class StageGoal : MonoBehaviour
 
     private void OnTriggerExit2D(Collider2D other)
     {
-        if (!other.CompareTag("Player"))
+        GameObject exitingPlayerObject = GetPlayerObject(other);
+        if (exitingPlayerObject == null || !exitingPlayerObject.CompareTag("Player"))
             return;
 
         if (isCleared)
@@ -90,10 +110,10 @@ public class StageGoal : MonoBehaviour
             return;
         }
 
-        GameObject exitingPlayerObject = GetPlayerObject(other);
         if (currentPlayerObject == exitingPlayerObject)
         {
             currentPlayerObject = null;
+            currentPlayerInventory = null;
             playerInRange = false;
         }
 
@@ -105,9 +125,51 @@ public class StageGoal : MonoBehaviour
         if (isCleared)
             return;
 
+        if (!CanDeliverLetters())
+        {
+            Debug.LogWarning("StageGoal clear flow was blocked because the player does not have enough letters to deliver.", this);
+            return;
+        }
+
         isCleared = true;
         SetInteractHintActive(false);
 
+        if (disablePlayerControl)
+        {
+            DisablePlayerControl(currentPlayerObject);
+        }
+
+        ConsumeDeliveredLettersIfNeeded();
+        StartLetterHandoffFlow();
+    }
+
+    private void StartLetterHandoffFlow()
+    {
+        if (!playLetterHandoff)
+        {
+            StartPostHandoffFlow();
+            return;
+        }
+
+        if (letterHandoffAnimator == null)
+        {
+            letterHandoffAnimator = FindFirstObjectByType<LetterHandoffWorldAnimator>(FindObjectsInactive.Include);
+        }
+
+        if (letterHandoffAnimator == null)
+        {
+            Debug.LogWarning("StageGoal could not find a LetterHandoffWorldAnimator. Continuing without the letter handoff animation.", this);
+            StartPostHandoffFlow();
+            return;
+        }
+
+        Transform playerTransform = currentPlayerObject != null ? currentPlayerObject.transform : null;
+        Transform targetTransform = npcHandoffTarget != null ? npcHandoffTarget : transform;
+        letterHandoffAnimator.Play(playerTransform, targetTransform, StartPostHandoffFlow);
+    }
+
+    private void StartPostHandoffFlow()
+    {
         if (useDialogueBeforeClear)
         {
             StartDialogueFlow();
@@ -127,7 +189,6 @@ public class StageGoal : MonoBehaviour
         if (dialogueController == null)
         {
             Debug.LogWarning("StageGoal could not find a VisualNovelDialogueController. Loading the next scene without dialogue. Add a VisualNovelDialogueController under the Canvas or assign it here.", this);
-            DisablePlayerControl(currentPlayerObject);
             StartCoroutine(LoadNextSceneAfterDelay(loadDelayAfterDialogue));
             return;
         }
@@ -135,7 +196,6 @@ public class StageGoal : MonoBehaviour
         if (dialogueLines == null || dialogueLines.Length == 0)
         {
             Debug.LogWarning("StageGoal has no dialogue lines. Loading the next scene without dialogue.", this);
-            DisablePlayerControl(currentPlayerObject);
             StartCoroutine(LoadNextSceneAfterDelay(loadDelayAfterDialogue));
             return;
         }
@@ -146,17 +206,16 @@ public class StageGoal : MonoBehaviour
 
     private void HandleDialogueFinished()
     {
-        DisablePlayerControl(currentPlayerObject);
-        StartCoroutine(LoadNextSceneAfterDelay(loadDelayAfterDialogue));
-    }
-
-    private void StartImmediateSceneTransition()
-    {
         if (disablePlayerControl)
         {
             DisablePlayerControl(currentPlayerObject);
         }
 
+        StartCoroutine(LoadNextSceneAfterDelay(loadDelayAfterDialogue));
+    }
+
+    private void StartImmediateSceneTransition()
+    {
         StartCoroutine(LoadNextSceneAfterDelay(transitionDelay));
     }
 
@@ -182,6 +241,47 @@ public class StageGoal : MonoBehaviour
     }
 
 
+    private bool CanDeliverLetters()
+    {
+        if (!requireLetters)
+        {
+            return true;
+        }
+
+        if (currentPlayerInventory == null && currentPlayerObject != null)
+        {
+            currentPlayerInventory = currentPlayerObject.GetComponentInParent<PlayerLetterInventory>();
+        }
+
+        if (currentPlayerInventory == null)
+        {
+            return false;
+        }
+
+        int requiredCount = GetRequiredDeliveryCount(currentPlayerInventory);
+        return currentPlayerInventory.GetCurrentLetterCount() >= requiredCount;
+    }
+
+    private void ConsumeDeliveredLettersIfNeeded()
+    {
+        if (!requireLetters || !consumeDeliveredLetters || currentPlayerInventory == null)
+        {
+            return;
+        }
+
+        currentPlayerInventory.ConsumeLetters(GetRequiredDeliveryCount(currentPlayerInventory));
+    }
+
+    private int GetRequiredDeliveryCount(PlayerLetterInventory inventory)
+    {
+        if (lettersToDeliver > 0)
+        {
+            return lettersToDeliver;
+        }
+
+        return inventory != null ? inventory.GetRequiredLetterCount() : 0;
+    }
+
     private GameObject GetPlayerObject(Collider2D playerCollider)
     {
         if (playerCollider == null)
@@ -193,7 +293,13 @@ public class StageGoal : MonoBehaviour
             return player.gameObject;
         }
 
-        return playerCollider.gameObject;
+        PlayerLetterInventory inventory = playerCollider.GetComponentInParent<PlayerLetterInventory>();
+        if (inventory != null)
+        {
+            return inventory.gameObject;
+        }
+
+        return playerCollider.CompareTag("Player") ? playerCollider.gameObject : null;
     }
 
     private void DisablePlayerControl(GameObject playerObject)

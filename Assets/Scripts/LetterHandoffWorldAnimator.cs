@@ -23,6 +23,15 @@ public class LetterHandoffWorldAnimator : MonoBehaviour
     [Header("Motion Visual")]
     [SerializeField] private float endScaleMultiplier = 0.8f;
 
+    [Header("Rendering")]
+    [SerializeField] private bool overrideRendererSorting = true;
+    [SerializeField] private string sortingLayerName = "Default";
+    [SerializeField] private int sortingOrder = 500;
+
+    [Header("Visibility Layer")]
+    [SerializeField] private bool overrideGameObjectLayer = true;
+    [SerializeField] private string gameObjectLayerName = "Default";
+
     private Coroutine routine;
 
     public void Play(Transform playerTransform, Transform npcTransform, Action onComplete)
@@ -48,6 +57,7 @@ public class LetterHandoffWorldAnimator : MonoBehaviour
         Vector3 controlPosition = (startPosition + endPosition) * 0.5f + Vector3.up * arcHeight;
 
         GameObject letterObject = Instantiate(letterPrefab, startPosition, Quaternion.identity);
+        PrepareLetterObjectForAnimation(letterObject);
         SpriteRenderer letterRenderer = letterObject.GetComponentInChildren<SpriteRenderer>();
 
         Vector3 startScale = letterObject.transform.localScale;
@@ -79,14 +89,9 @@ public class LetterHandoffWorldAnimator : MonoBehaviour
 
         letterObject.transform.position = endPosition;
         letterObject.transform.localScale = endScale;
-
-        // 도착 순간 편지 비활성화
         letterObject.SetActive(false);
 
-        // 도착 위치에 이펙트 출력
         GameObject effectObject = SpawnArrivalEffect(endPosition);
-
-        // 이펙트를 1초 정도 보여줌
         float waitTime = Mathf.Max(0f, arrivalEffectLifetime);
 
         if (waitTime > 0f)
@@ -118,6 +123,8 @@ public class LetterHandoffWorldAnimator : MonoBehaviour
             Quaternion.identity
         );
 
+        PrepareVisualObjectForCutscene(effectObject);
+
         ParticleSystem particleSystem = effectObject.GetComponentInChildren<ParticleSystem>();
         if (particleSystem != null)
         {
@@ -125,6 +132,68 @@ public class LetterHandoffWorldAnimator : MonoBehaviour
         }
 
         return effectObject;
+    }
+
+    private void PrepareLetterObjectForAnimation(GameObject letterObject)
+    {
+        if (letterObject == null)
+            return;
+
+        LetterIconPickup[] pickups = letterObject.GetComponentsInChildren<LetterIconPickup>(true);
+        for (int i = 0; i < pickups.Length; i++)
+        {
+            pickups[i].enabled = false;
+        }
+
+        Collider2D[] colliders = letterObject.GetComponentsInChildren<Collider2D>(true);
+        for (int i = 0; i < colliders.Length; i++)
+        {
+            colliders[i].enabled = false;
+        }
+
+        PrepareVisualObjectForCutscene(letterObject);
+    }
+
+    private void PrepareVisualObjectForCutscene(GameObject targetObject)
+    {
+        ApplyGameObjectLayer(targetObject);
+        ApplyRendererSorting(targetObject);
+    }
+
+    private void ApplyGameObjectLayer(GameObject targetObject)
+    {
+        if (!overrideGameObjectLayer || targetObject == null || string.IsNullOrEmpty(gameObjectLayerName))
+            return;
+
+        int layer = LayerMask.NameToLayer(gameObjectLayerName);
+        if (layer < 0)
+        {
+            Debug.LogWarning($"LetterHandoffWorldAnimator could not find layer '{gameObjectLayerName}'. Keeping the prefab layer.", this);
+            return;
+        }
+
+        Transform[] childTransforms = targetObject.GetComponentsInChildren<Transform>(true);
+        for (int i = 0; i < childTransforms.Length; i++)
+        {
+            childTransforms[i].gameObject.layer = layer;
+        }
+    }
+
+    private void ApplyRendererSorting(GameObject targetObject)
+    {
+        if (!overrideRendererSorting || targetObject == null)
+            return;
+
+        Renderer[] renderers = targetObject.GetComponentsInChildren<Renderer>(true);
+        for (int i = 0; i < renderers.Length; i++)
+        {
+            if (!string.IsNullOrEmpty(sortingLayerName))
+            {
+                renderers[i].sortingLayerName = sortingLayerName;
+            }
+
+            renderers[i].sortingOrder = sortingOrder;
+        }
     }
 
     private Vector3 GetQuadraticBezierPoint(Vector3 start, Vector3 control, Vector3 end, float t)
