@@ -1,5 +1,4 @@
 using System.Collections;
-using System.IO;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -97,6 +96,14 @@ public class StageGoal : MonoBehaviour
         }
 
         StartClearFlow();
+    }
+
+    private void OnTriggerStay2D(Collider2D other)
+    {
+        if (isCleared || playerInRange)
+            return;
+
+        OnTriggerEnter2D(other);
     }
 
     private void OnTriggerExit2D(Collider2D other)
@@ -232,56 +239,13 @@ public class StageGoal : MonoBehaviour
             yield return new WaitForSeconds(delay);
         }
 
-        if (TryLoadConfiguredNextScene())
-        {
-            yield break;
-        }
-
-        if (TryLoadNextSceneInBuildOrder())
-        {
-            yield break;
-        }
-
-        Debug.LogWarning("StageGoal could not load the next scene. Check nextSceneName or the Build Settings scene order.", this);
-    }
-
-    private bool TryLoadConfiguredNextScene()
-    {
         if (string.IsNullOrEmpty(nextSceneName))
         {
-            return false;
+            Debug.LogWarning("StageGoal nextSceneName is empty. Cannot load the next scene.", this);
+            yield break;
         }
 
-        for (int buildIndex = 0; buildIndex < SceneManager.sceneCountInBuildSettings; buildIndex++)
-        {
-            string scenePath = SceneUtility.GetScenePathByBuildIndex(buildIndex);
-            string sceneName = Path.GetFileNameWithoutExtension(scenePath);
-
-            if (sceneName != nextSceneName)
-            {
-                continue;
-            }
-
-            SceneManager.LoadScene(buildIndex);
-            return true;
-        }
-
-        Debug.LogWarning($"StageGoal could not find nextSceneName '{nextSceneName}' in Build Settings. Falling back to the next scene in build order.", this);
-        return false;
-    }
-
-    private bool TryLoadNextSceneInBuildOrder()
-    {
-        Scene activeScene = SceneManager.GetActiveScene();
-        int nextBuildIndex = activeScene.buildIndex + 1;
-
-        if (activeScene.buildIndex < 0 || nextBuildIndex >= SceneManager.sceneCountInBuildSettings)
-        {
-            return false;
-        }
-
-        SceneManager.LoadScene(nextBuildIndex);
-        return true;
+        SceneManager.LoadScene(nextSceneName);
     }
 
 
