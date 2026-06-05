@@ -1,0 +1,88 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &176286473377456988
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3929225164274639229}
+  - component: {fileID: 2279716003644586315}
+  - component: {fileID: 8593804710085333510}
+  m_Layer: 0
+  m_Name: DialogueManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3929225164274639229
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 176286473377456988}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2279716003644586315
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 176286473377456988}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f28a20860d0db9f429b9c4c8484f2cc3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::VisualNovelDialogueController
+  dialoguePanel: {fileID: 0}
+  dandiPortrait: {fileID: 0}
+  npcPortrait: {fileID: 0}
+  activeAlpha: 1
+  inactiveAlpha: 0.5
+  speakerNameText: {fileID: 0}
+  dialogueText: {fileID: 0}
+  nextButton: {fileID: 0}
+  applyLayoutOnAwake: 1
+  dialogueBox: {fileID: 0}
+  dimBackground: {fileID: 0}
+  nextKey: 32
+  charactersPerSecond: 35
+  showCursorDuringDialogue: 1
+  restoreCursorAfterDialogue: 0
+--- !u!114 &8593804710085333510
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 176286473377456988}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4a048c0c83d78264881a0dd139b25293, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LetterHandoffWorldAnimator
+  letterPrefab: {fileID: 4035712937693740427, guid: 9839c9699f004a24faf165dba44f19b8, type: 3}
+  arrivalEffectPrefab: {fileID: 2114415160723529283, guid: 3a12eb215c4bbc44981b4a0fa95357f1, type: 3}
+  arrivalEffectLifetime: 1
+  arrivalEffectOffset: {x: 0, y: 0, z: 0}
+  playerStartOffset: {x: 0.35, y: 0.75, z: 0}
+  npcEndOffset: {x: -0.35, y: 0.85, z: 0}
+  arcHeight: 1.2
+  moveDuration: 0.8
+  endScaleMultiplier: 0.8
+  overrideRendererSorting: 1
+  sortingLayerName: Default
+  sortingOrder: 500
+  overrideGameObjectLayer: 1
+  gameObjectLayerName: Default
