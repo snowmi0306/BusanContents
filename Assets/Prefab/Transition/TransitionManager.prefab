@@ -1,0 +1,82 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &8014330194505164417
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2637407804144657783}
+  - component: {fileID: 3893131273650751723}
+  m_Layer: 0
+  m_Name: TransitionManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2637407804144657783
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8014330194505164417}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 196.38892, y: 88.09157, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &3893131273650751723
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8014330194505164417}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 740efa3436029c24fba7f1d990f8102a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MuralTransitionManager
+  transitionRoot: {fileID: 0}
+  oldScreenImage: {fileID: 0}
+  circleMaskRoot: {fileID: 0}
+  muralScreenImage: {fileID: 0}
+  distortionImage: {fileID: 0}
+  distortionMaterial: {fileID: 2100000, guid: 7990fb2413abb8843b46a4d4a88640d0, type: 2}
+  ringFxRoot: {fileID: 0}
+  ringCanvasGroup: {fileID: 0}
+  ringImage: {fileID: 0}
+  ringFrames:
+  - {fileID: -39836351201251266, guid: 425bafddfff28204bb600546700cd797, type: 3}
+  - {fileID: 2233649328043398421, guid: 425bafddfff28204bb600546700cd797, type: 3}
+  - {fileID: 7433244652741966483, guid: 425bafddfff28204bb600546700cd797, type: 3}
+  - {fileID: -2059763302100577286, guid: 425bafddfff28204bb600546700cd797, type: 3}
+  - {fileID: -2518464109697843309, guid: 425bafddfff28204bb600546700cd797, type: 3}
+  ringFramesPerSecond: 12
+  ringSizePadding: 100
+  ringMaxAlpha: 1
+  rotateRing: 1
+  ringRotationDegrees: 180
+  transitionCanvas: {fileID: 0}
+  mainCamera: {fileID: 0}
+  muralCamera: {fileID: 0}
+  transitionDuration: 1.5
+  finalDiameterMultiplier: 1.25
+  useUnscaledTime: 1
+  pulseOutDuration: 1.82
+  pulseInDuration: 1.15
+  pulseOutSizeRatio: 0.25
+  pulseInSizeRatio: 0.06
+  pulseOutEase: 6
+  pulseInEase: 4
+  finalExpandEase: 9
+  distortionWidth: 0.41
+  maxDistortionStrength: 0.37
+  distortionAlpha: 0.718
