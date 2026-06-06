@@ -16,9 +16,7 @@ public class Checkpoint : MonoBehaviour
     private void Awake()
     {
         if (activeEffect != null)
-        {
             activeEffect.SetActive(false);
-        }
     }
 
     private void OnTriggerEnter2D(Collider2D other)
@@ -33,67 +31,61 @@ public class Checkpoint : MonoBehaviour
         if (player == null)
             return;
 
-        Vector3 checkpointPosition = respawnPoint != null
-            ? respawnPoint.position
-            : transform.position;
+        Vector3 checkpointPosition = respawnPoint != null ? respawnPoint.position : transform.position;
 
         player.SetCheckpoint(checkpointPosition);
         activated = true;
+        AudioManager.PlaySfx("sfx_checkpoint_mailbox");
 
         if (activeEffect != null)
-        {
             StartCoroutine(PlayActiveEffect());
-        }
 
-        Debug.Log("체크포인트 저장 완료");
+        Debug.Log("Checkpoint saved.");
     }
 
     private IEnumerator PlayActiveEffect()
     {
         activeEffect.SetActive(true);
-
         Transform effectTransform = activeEffect.transform;
-        SpriteRenderer sr = activeEffect.GetComponent<SpriteRenderer>();
+        SpriteRenderer spriteRenderer = activeEffect.GetComponent<SpriteRenderer>();
 
-        Vector3 endPos = effectTransform.localPosition;
-        Vector3 startPos = endPos + Vector3.down * effectMoveDistance;
+        Vector3 endPosition = effectTransform.localPosition;
+        Vector3 startPosition = endPosition + Vector3.down * effectMoveDistance;
+        effectTransform.localPosition = startPosition;
 
-        effectTransform.localPosition = startPos;
-
-        if (sr != null)
+        if (spriteRenderer != null)
         {
-            Color color = sr.color;
+            Color color = spriteRenderer.color;
             color.a = 0f;
-            sr.color = color;
+            spriteRenderer.color = color;
         }
 
         float time = 0f;
-
         while (time < effectDuration)
         {
             time += Time.deltaTime;
             float t = Mathf.Clamp01(time / effectDuration);
             float smoothT = Mathf.SmoothStep(0f, 1f, t);
 
-            effectTransform.localPosition = Vector3.Lerp(startPos, endPos, smoothT);
+            effectTransform.localPosition = Vector3.Lerp(startPosition, endPosition, smoothT);
 
-            if (sr != null)
+            if (spriteRenderer != null)
             {
-                Color color = sr.color;
+                Color color = spriteRenderer.color;
                 color.a = Mathf.Lerp(0f, 1f, smoothT);
-                sr.color = color;
+                spriteRenderer.color = color;
             }
 
             yield return null;
         }
 
-        effectTransform.localPosition = endPos;
+        effectTransform.localPosition = endPosition;
 
-        if (sr != null)
+        if (spriteRenderer != null)
         {
-            Color color = sr.color;
+            Color color = spriteRenderer.color;
             color.a = 1f;
-            sr.color = color;
+            spriteRenderer.color = color;
         }
     }
 }

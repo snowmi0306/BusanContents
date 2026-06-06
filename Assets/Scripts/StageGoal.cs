@@ -13,11 +13,6 @@ public class StageGoal : MonoBehaviour
     [SerializeField] private bool disablePlayerControl = true;
     [SerializeField] private float loadDelayAfterDialogue = 0.5f;
 
-    [Header("Letter Requirement")]
-    [SerializeField] private bool requireLetters = false;
-    [SerializeField, Min(0)] private int lettersToDeliver = 0;
-    [SerializeField] private bool consumeDeliveredLetters = false;
-
     [Header("Letter Handoff")]
     [SerializeField] private bool playLetterHandoff = true;
     [SerializeField] private LetterHandoffWorldAnimator letterHandoffAnimator;
@@ -38,7 +33,6 @@ public class StageGoal : MonoBehaviour
     private bool isCleared;
     private bool playerInRange;
     private GameObject currentPlayerObject;
-    private PlayerLetterInventory currentPlayerInventory;
 
     private void Awake()
     {
@@ -80,22 +74,7 @@ public class StageGoal : MonoBehaviour
         if (isCleared)
             return;
 
-        currentPlayerObject = GetPlayerObject(other);
-        if (currentPlayerObject == null || !currentPlayerObject.CompareTag("Player"))
-            return;
-
-        currentPlayerInventory = currentPlayerObject != null
-            ? currentPlayerObject.GetComponentInParent<PlayerLetterInventory>()
-            : other.GetComponentInParent<PlayerLetterInventory>();
-        playerInRange = true;
-
-        if (requireInteractKey)
-        {
-            SetInteractHintActive(true);
-            return;
-        }
-
-        StartClearFlow();
+        TryStartClearFlow(other);
     }
 
     private void OnTriggerStay2D(Collider2D other)
@@ -103,7 +82,7 @@ public class StageGoal : MonoBehaviour
         if (isCleared || playerInRange)
             return;
 
-        OnTriggerEnter2D(other);
+        TryStartClearFlow(other);
     }
 
     private void OnTriggerExit2D(Collider2D other)
@@ -121,7 +100,6 @@ public class StageGoal : MonoBehaviour
         if (currentPlayerObject == exitingPlayerObject)
         {
             currentPlayerObject = null;
-            currentPlayerInventory = null;
             playerInRange = false;
         }
 
@@ -133,13 +111,8 @@ public class StageGoal : MonoBehaviour
         if (isCleared)
             return;
 
-        if (!CanDeliverLetters())
-        {
-            Debug.LogWarning("StageGoal clear flow was blocked because the player does not have enough letters to deliver.", this);
-            return;
-        }
-
         isCleared = true;
+        AudioManager.PlaySfx("sfx_stage_clear");
         SetInteractHintActive(false);
 
         if (disablePlayerControl)
@@ -147,7 +120,6 @@ public class StageGoal : MonoBehaviour
             DisablePlayerControl(currentPlayerObject);
         }
 
-        ConsumeDeliveredLettersIfNeeded();
         StartLetterHandoffFlow();
     }
 
@@ -155,7 +127,7 @@ public class StageGoal : MonoBehaviour
     {
         if (!playLetterHandoff)
         {
-            StartPostHandoffFlow();
+            StartPostClearFlow();
             return;
         }
 
@@ -167,16 +139,16 @@ public class StageGoal : MonoBehaviour
         if (letterHandoffAnimator == null)
         {
             Debug.LogWarning("StageGoal could not find a LetterHandoffWorldAnimator. Continuing without the letter handoff animation.", this);
-            StartPostHandoffFlow();
+            StartPostClearFlow();
             return;
         }
 
         Transform playerTransform = currentPlayerObject != null ? currentPlayerObject.transform : null;
         Transform targetTransform = npcHandoffTarget != null ? npcHandoffTarget : transform;
-        letterHandoffAnimator.Play(playerTransform, targetTransform, StartPostHandoffFlow);
+        letterHandoffAnimator.Play(playerTransform, targetTransform, StartPostClearFlow);
     }
 
-    private void StartPostHandoffFlow()
+    private void StartPostClearFlow()
     {
         if (useDialogueBeforeClear)
         {
@@ -248,49 +220,29 @@ public class StageGoal : MonoBehaviour
         SceneManager.LoadScene(nextSceneName);
     }
 
-
-    private bool CanDeliverLetters()
+    private void TryStartClearFlow(Collider2D playerCollider)
     {
-        if (!requireLetters)
-        {
-            return true;
-        }
+        if (!TrySetCurrentPlayer(playerCollider))
+            return;
 
-        if (currentPlayerInventory == null && currentPlayerObject != null)
-        {
-            currentPlayerInventory = currentPlayerObject.GetComponentInParent<PlayerLetterInventory>();
-        }
+        playerInRange = true;
 
-        if (currentPlayerInventory == null)
+        if (requireInteractKey)
         {
-            return false;
-        }
-
-        int requiredCount = GetRequiredDeliveryCount(currentPlayerInventory);
-        return currentPlayerInventory.GetCurrentLetterCount() >= requiredCount;
-    }
-
-    private void ConsumeDeliveredLettersIfNeeded()
-    {
-        if (!requireLetters || !consumeDeliveredLetters || currentPlayerInventory == null)
-        {
+            SetInteractHintActive(true);
             return;
         }
 
-        currentPlayerInventory.ConsumeLetters(GetRequiredDeliveryCount(currentPlayerInventory));
+        StartClearFlow();
     }
 
-    private int GetRequiredDeliveryCount(PlayerLetterInventory inventory)
+    private bool TrySetCurrentPlayer(Collider2D playerCollider)
     {
-        if (lettersToDeliver > 0)
-        {
-            return lettersToDeliver;
-        }
-
-        return inventory != null ? inventory.GetRequiredLetterCount() : 0;
+        currentPlayerObject = GetPlayerObject(playerCollider);
+        return currentPlayerObject != null && currentPlayerObject.CompareTag("Player");
     }
 
-    private GameObject GetPlayerObject(Collider2D playerCollider)
+    private static GameObject GetPlayerObject(Collider2D playerCollider)
     {
         if (playerCollider == null)
             return null;
@@ -299,12 +251,6 @@ public class StageGoal : MonoBehaviour
         if (player != null)
         {
             return player.gameObject;
-        }
-
-        PlayerLetterInventory inventory = playerCollider.GetComponentInParent<PlayerLetterInventory>();
-        if (inventory != null)
-        {
-            return inventory.gameObject;
         }
 
         return playerCollider.CompareTag("Player") ? playerCollider.gameObject : null;

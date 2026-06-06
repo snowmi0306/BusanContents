@@ -83,4 +83,4 @@ public class QuizDisappearPlatform : MonoBehaviour
         if (countdownText != null)
             countdownText.gameObject.SetActive(false);
     }
-}   
+}

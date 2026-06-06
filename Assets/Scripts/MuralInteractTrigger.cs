@@ -1,7 +1,5 @@
-using System.Collections;
 using UnityEngine;
 using UnityEngine.Events;
-using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 public class MuralInteractTrigger : MonoBehaviour
@@ -57,14 +55,12 @@ public class MuralInteractTrigger : MonoBehaviour
     [SerializeField, Range(0f, 1f)] private float disabledInteractHintAlpha = 0.5f;
 
     [Header("Events")]
-    [FormerlySerializedAs("onLettersRequirementMet")]
     [SerializeField] private UnityEvent onTransitionCompleted;
 
     private PlayController currentPlayer;
     private Rigidbody2D currentPlayerRigidbody;
     private bool isPlayerInside;
     private bool isTransitioning;
-    private Coroutine disabledHintRoutine;
 
     private void Awake()
     {
@@ -90,22 +86,11 @@ public class MuralInteractTrigger : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        if (other == null || !other.CompareTag("Player"))
+        if (!TryRegisterPlayer(other))
             return;
-
-        PlayController player = other.GetComponentInParent<PlayController>();
-        if (player == null)
-            return;
-
-        currentPlayer = player;
-        currentPlayerRigidbody = other.GetComponentInParent<Rigidbody2D>();
-        isPlayerInside = true;
 
         SetHintActive(interactHint, true);
         SetHintTransparency(interactHint, isTransitioning ? disabledInteractHintAlpha : defaultInteractHintAlpha);
-
-        TryRegisterPlayer(other);
-
     }
 
     private void OnTriggerStay2D(Collider2D other)
@@ -113,17 +98,18 @@ public class MuralInteractTrigger : MonoBehaviour
         if (isPlayerInside && currentPlayer != null)
             return;
 
-        TryRegisterPlayer(other);
+        if (!TryRegisterPlayer(other))
+            return;
     }
 
-    private void TryRegisterPlayer(Collider2D other)
+    private bool TryRegisterPlayer(Collider2D other)
     {
         if (other == null || !other.CompareTag("Player"))
-            return;
+            return false;
 
         PlayController player = other.GetComponentInParent<PlayController>();
         if (player == null)
-            return;
+            return false;
 
         currentPlayer = player;
         currentPlayerRigidbody = other.GetComponentInParent<Rigidbody2D>();
@@ -134,6 +120,8 @@ public class MuralInteractTrigger : MonoBehaviour
             SetHintActive(interactHint, true);
             SetHintTransparency(interactHint, defaultInteractHintAlpha);
         }
+
+        return true;
     }
 
     private void OnTriggerExit2D(Collider2D other)
@@ -152,15 +140,7 @@ public class MuralInteractTrigger : MonoBehaviour
 
         SetHintActive(interactHint, false);
         SetHintTransparency(interactHint, defaultInteractHintAlpha);
-
-        if (disabledHintRoutine != null)
-        {
-            StopCoroutine(disabledHintRoutine);
-            disabledHintRoutine = null;
-        }
     }
-
-
 
     private void StartWorldTransition()
     {
@@ -175,6 +155,8 @@ public class MuralInteractTrigger : MonoBehaviour
             Debug.Log("이미 목표 세계 상태입니다.");
             return;
         }
+
+        AudioManager.PlaySfx(targetMuralActive ? "sfx_mural_enter" : "sfx_mural_exit");
 
         isTransitioning = true;
         SetHintActive(interactHint, false);

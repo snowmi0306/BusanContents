@@ -151,14 +151,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3b2bbf2ea8fcb37429a08bc8cbbcedab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::StageGoal
-  nextSceneName: Stage2_
+  nextSceneName: Stage2
   transitionDelay: 1.5
   transitionPanel: {fileID: 0}
   disablePlayerControl: 1
   loadDelayAfterDialogue: 0.5
-  requireLetters: 0
-  lettersToDeliver: 0
-  consumeDeliveredLetters: 0
   playLetterHandoff: 1
   letterHandoffAnimator: {fileID: 0}
   npcHandoffTarget: {fileID: 2854160724973237125}

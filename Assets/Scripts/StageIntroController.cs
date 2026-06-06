@@ -76,13 +76,7 @@ public class StageIntroController : MonoBehaviour
 
     private void Update()
     {
-        if (!isPlaying)
-            return;
-
-        if (!canConfirm)
-            return;
-
-        if (!allowSpaceToConfirm)
+        if (!isPlaying || !canConfirm || !allowSpaceToConfirm)
             return;
 
         if (Input.GetKeyDown(confirmKey))

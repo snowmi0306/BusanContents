@@ -49,13 +49,16 @@ public class PlayController : MonoBehaviour
     private float defaultGravityScale;
     private string currentBaseAnimationName;
     private MovingPlatform2D currentPlatform;
+    private bool wasGrounded;
+    private bool wasGliding;
+    private bool groundStateInitialized;
 
     private int currentHealth;
     private float invincibleTimer = 0f;
     private Vector3 spawnPoint;
     private Vector3 stageStartPoint;
 
-    void Start()
+    private void Start()
     {
         Application.targetFrameRate = 60;
 
@@ -73,7 +76,7 @@ public class PlayController : MonoBehaviour
         stageStartPoint = transform.position;
     }
 
-    void Update()
+    private void Update()
     {
         if (invincibleTimer > 0)
         {
@@ -86,31 +89,44 @@ public class PlayController : MonoBehaviour
 
         FlipSpine(moveInput);
 
-        bool canJump = isGrounded || (Time.time - lastGroundTime) <= groundedGraceTime;
+        bool isRecentlyGrounded = IsRecentlyGrounded();
+        bool canJump = isGrounded || isRecentlyGrounded;
 
         if (Input.GetKeyDown(KeyCode.Space) && canJump)
         {
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
+            AudioManager.PlaySfx("sfx_player_jump");
         }
 
-        bool isRecentlyGrounded = (Time.time - lastGroundTime) <= groundedGraceTime;
         bool isGliding = Input.GetKey(KeyCode.Space) && !isRecentlyGrounded && rb.linearVelocity.y < 0 && currentStamina > 0;
 
         UpdateSpineAnimation(moveInput, isGliding);
     }
 
 
-    void FixedUpdate()
+    private void FixedUpdate()
     {
         isGrounded = CheckGrounded();
+
+        if (groundStateInitialized && isGrounded && !wasGrounded)
+        {
+            AudioManager.PlaySfx("sfx_player_land");
+        }
+
+        groundStateInitialized = true;
 
         if (isGrounded)
         {
             lastGroundTime = Time.time;
         }
 
-        bool isRecentlyGrounded = (Time.time - lastGroundTime) <= groundedGraceTime;
+        bool isRecentlyGrounded = IsRecentlyGrounded();
         bool isGliding = Input.GetKey(KeyCode.Space) && !isRecentlyGrounded && rb.linearVelocity.y < 0 && currentStamina > 0;
+
+        if (isGliding && !wasGliding)
+        {
+            AudioManager.PlaySfx("sfx_player_glide_start");
+        }
 
         if (isGliding)
         {
@@ -118,6 +134,8 @@ public class PlayController : MonoBehaviour
 
             currentStamina -= glideStaminaCost * Time.fixedDeltaTime;
             currentStamina = Mathf.Max(0, currentStamina);
+            wasGliding = true;
+            wasGrounded = isGrounded;
             return;
         }
 
@@ -128,7 +146,16 @@ public class PlayController : MonoBehaviour
             currentStamina += staminaRegenRate * Time.fixedDeltaTime;
             currentStamina = Mathf.Min(maxStamina, currentStamina);
         }
+
+        wasGliding = false;
+        wasGrounded = isGrounded;
     }
+
+    private bool IsRecentlyGrounded()
+    {
+        return (Time.time - lastGroundTime) <= groundedGraceTime;
+    }
+
     private void AssignGroundCheckIfNeeded()
     {
         if (groundCheck != null && groundCheck.IsChildOf(transform))
@@ -294,6 +321,7 @@ public class PlayController : MonoBehaviour
         }
 
         currentHealth -= damage;
+        AudioManager.PlaySfx("sfx_player_hit");
         invincibleTimer = invincibleDuration;
         PlayHitAnimation();
 
@@ -371,9 +399,6 @@ public class PlayController : MonoBehaviour
     {
         return maxStamina;
     }
-
-
-
     public bool IsInvincible()
     {
         return invincibleTimer > 0;

@@ -96,10 +96,10 @@ public class PlayerHUD : MonoBehaviour
 
     private void ResolveLetterInventoryIfNeeded()
     {
-        if (playerInventory == null)
-        {
-            playerInventory = FindFirstObjectByType<PlayerLetterInventory>();
-        }
+        if (playerInventory != null)
+            return;
+
+        playerInventory = FindFirstObjectByType<PlayerLetterInventory>();
     }
 
     private void ApplyLetterIconSprite()
@@ -111,14 +111,15 @@ public class PlayerHUD : MonoBehaviour
 
         for (int i = 0; i < letterSlotImages.Length; i++)
         {
-            if (letterSlotImages[i] != null)
-            {
-                letterSlotImages[i].sprite = letterIconSprite;
-            }
+            Image slotImage = letterSlotImages[i];
+            if (slotImage == null)
+                continue;
+
+            slotImage.sprite = letterIconSprite;
         }
     }
 
-    private void HandleLetterChanged(int current, int required)
+    private void HandleLetterChanged(int current)
     {
         RefreshLetterUI(current, false);
     }

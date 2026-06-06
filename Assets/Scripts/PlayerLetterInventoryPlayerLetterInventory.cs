@@ -4,14 +4,12 @@ using UnityEngine;
 public class PlayerLetterInventory : MonoBehaviour
 {
     [SerializeField, Min(0)] private int currentLetterCount = 0;
-    [SerializeField, Min(0)] private int requiredLetterCount = 3;
 
-    public event Action<int, int> OnLetterCountChanged;
+    public event Action<int> OnLetterCountChanged;
 
     private void Awake()
     {
         currentLetterCount = Mathf.Max(0, currentLetterCount);
-        requiredLetterCount = Mathf.Max(0, requiredLetterCount);
         NotifyLetterCountChanged();
     }
 
@@ -22,18 +20,13 @@ public class PlayerLetterInventory : MonoBehaviour
             return;
         }
 
-        int previous = currentLetterCount;
+        int previousLetterCount = currentLetterCount;
         currentLetterCount = Mathf.Max(0, currentLetterCount + amount);
 
-        if (previous != currentLetterCount)
+        if (previousLetterCount != currentLetterCount)
         {
             NotifyLetterCountChanged();
         }
-    }
-
-    public bool HasRequiredLetters()
-    {
-        return currentLetterCount >= requiredLetterCount;
     }
 
     public bool ConsumeLetters(int amount)
@@ -48,10 +41,10 @@ public class PlayerLetterInventory : MonoBehaviour
             return false;
         }
 
-        int previous = currentLetterCount;
+        int previousLetterCount = currentLetterCount;
         currentLetterCount = Mathf.Max(0, currentLetterCount - amount);
 
-        if (previous != currentLetterCount)
+        if (previousLetterCount != currentLetterCount)
         {
             NotifyLetterCountChanged();
         }
@@ -64,13 +57,8 @@ public class PlayerLetterInventory : MonoBehaviour
         return currentLetterCount;
     }
 
-    public int GetRequiredLetterCount()
-    {
-        return requiredLetterCount;
-    }
-
     private void NotifyLetterCountChanged()
     {
-        OnLetterCountChanged?.Invoke(currentLetterCount, requiredLetterCount);
+        OnLetterCountChanged?.Invoke(currentLetterCount);
     }
 }

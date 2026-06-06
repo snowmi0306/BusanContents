@@ -4,17 +4,17 @@ public class FallZone : MonoBehaviour
 {
     private PlayController player;
 
-    void Start()
+    private void Start()
     {
         player = FindObjectOfType<PlayController>();
     }
 
-    void OnTriggerEnter2D(Collider2D collision)
+    private void OnTriggerEnter2D(Collider2D collision)
     {
         if (collision.CompareTag("Player") && player != null)
         {
             Debug.Log("¶³¾îÁü!");
-            player.OnFallZoneHit(); ;
+            player.OnFallZoneHit();
         }
     }
 }

@@ -67,6 +67,8 @@ public class VisualNovelDialogueController : MonoBehaviour
         if (!IsPlaying)
             return;
 
+        AudioManager.PlaySfx("sfx_dialogue_next");
+
         if (Input.GetKeyDown(nextKey))
         {
             AdvanceDialogue();
@@ -138,6 +140,8 @@ public class VisualNovelDialogueController : MonoBehaviour
     {
         if (!IsPlaying)
             return;
+
+        AudioManager.PlaySfx("sfx_dialogue_next");
 
         if (isTyping)
         {
