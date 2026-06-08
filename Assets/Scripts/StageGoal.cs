@@ -25,7 +25,7 @@ public class StageGoal : MonoBehaviour
     [SerializeField] private Sprite dandiPortraitSprite;
     [SerializeField] private Sprite npcPortraitSprite;
     [SerializeField] private bool autoAdvanceDialogue = true;
-    [SerializeField] private float autoAdvanceDialogueDelay = 1.2f;
+    [SerializeField] private float autoAdvanceDialogueDelay = 2.5f;
 
     [Header("Stage 3 Portal Sound")]
     [SerializeField] private string portalEnterSceneName = "Stage3";

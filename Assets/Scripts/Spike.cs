@@ -25,7 +25,7 @@ public class Spike : MonoBehaviour
         }
 
         lastDamageTime = Time.time;
-        AudioManager.PlaySfx("sfx_spike_hit");
+        AudioManager.PlaySfx("sfx_spike_hit", 1f, 0.3f);
         player.OnObstacleHit(transform.position);
     }
 }

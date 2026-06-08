@@ -10,6 +10,7 @@ public class AudioManager : MonoBehaviour
 {
     private const string SoundsResourcePath = "Sounds";
     private const string ButtonClickSfx = "sfx_ui_click";
+    private const float FastSfxStartOffset = 0.3f;
 
     private static readonly Dictionary<string, string> SceneBgms = new Dictionary<string, string>
     {
@@ -55,9 +56,9 @@ public class AudioManager : MonoBehaviour
         EnsureInstance();
     }
 
-    public static void PlaySfx(string clipName, float volumeScale = 1f)
+    public static void PlaySfx(string clipName, float volumeScale = 1f, float startOffset = 0f)
     {
-        Instance.PlaySfxInternal(clipName, volumeScale);
+        Instance.PlaySfxInternal(clipName, volumeScale, startOffset);
     }
 
     public static void PlayBgm(string clipName, bool loop = true)
@@ -223,7 +224,7 @@ public class AudioManager : MonoBehaviour
 
     private void PlayButtonClickSfx()
     {
-        PlaySfxInternal(ButtonClickSfx, 1f);
+        PlaySfxInternal(ButtonClickSfx, 1f, FastSfxStartOffset);
     }
 
     private void PlayButtonPressSfx(Button button)
@@ -231,7 +232,7 @@ public class AudioManager : MonoBehaviour
         if (button != null && !button.IsInteractable())
             return;
 
-        PlaySfxInternal(ButtonClickSfx, 1f);
+        PlaySfxInternal(ButtonClickSfx, 1f, FastSfxStartOffset);
     }
 
     private void PlaySceneBgm(string sceneName, bool muralWorld)
@@ -258,13 +259,40 @@ public class AudioManager : MonoBehaviour
         }
     }
 
-    private void PlaySfxInternal(string clipName, float volumeScale)
+    private void PlaySfxInternal(string clipName, float volumeScale, float startOffset = 0f)
     {
         AudioClip clip = GetClip(clipName);
         if (clip == null || sfxSource == null)
             return;
 
-        sfxSource.PlayOneShot(clip, Mathf.Clamp01(volumeScale) * sfxVolume);
+        float volume = Mathf.Clamp01(volumeScale) * sfxVolume;
+        if (startOffset <= 0f)
+        {
+            sfxSource.PlayOneShot(clip, volume);
+            return;
+        }
+
+        StartCoroutine(PlaySfxFromOffset(clip, volume, startOffset));
+    }
+
+    private IEnumerator PlaySfxFromOffset(AudioClip clip, float volume, float startOffset)
+    {
+        if (clip == null)
+            yield break;
+
+        float playStartTime = Mathf.Clamp(startOffset, 0f, Mathf.Max(0f, clip.length - 0.01f));
+        AudioSource offsetSource = gameObject.AddComponent<AudioSource>();
+        offsetSource.playOnAwake = false;
+        offsetSource.loop = false;
+        offsetSource.clip = clip;
+        offsetSource.volume = volume;
+        offsetSource.time = playStartTime;
+        offsetSource.Play();
+
+        yield return new WaitForSecondsRealtime(Mathf.Max(0.01f, clip.length - playStartTime) + 0.1f);
+
+        if (offsetSource != null)
+            Destroy(offsetSource);
     }
 
     private void PlayBgmInternal(string clipName, bool loop)

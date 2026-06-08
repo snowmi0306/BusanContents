@@ -16,7 +16,7 @@ public class FallZone : MonoBehaviour
             return;
         }
 
-        AudioManager.PlaySfx("sfx_fall_respawn");
+        AudioManager.PlaySfx("sfx_fall_respawn", 1f, 0.3f);
 
         PlayController hitPlayer = collision.GetComponentInParent<PlayController>();
         if (hitPlayer == null)

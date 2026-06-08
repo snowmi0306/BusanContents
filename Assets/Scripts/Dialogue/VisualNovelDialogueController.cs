@@ -31,7 +31,7 @@ public class VisualNovelDialogueController : MonoBehaviour
     [SerializeField] private float charactersPerSecond = 35f;
 
     [Header("Auto Advance")]
-    [SerializeField] private float defaultAutoAdvanceDelay = 1.2f;
+    [SerializeField] private float defaultAutoAdvanceDelay = 2.5f;
 
     [Header("Cursor")]
     [SerializeField] private bool showCursorDuringDialogue = true;

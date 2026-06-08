@@ -100,7 +100,7 @@ public class PlayController : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Space) && canJump)
         {
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
-            AudioManager.PlaySfx("sfx_player_jump");
+            AudioManager.PlaySfx("sfx_player_jump", 1f, 0.3f);
         }
 
         bool isGliding = Input.GetKey(KeyCode.Space) && !isRecentlyGrounded && rb.linearVelocity.y < 0 && currentStamina > 0;
