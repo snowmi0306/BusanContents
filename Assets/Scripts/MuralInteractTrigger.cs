@@ -59,6 +59,9 @@ public class MuralInteractTrigger : MonoBehaviour
 
     private PlayController currentPlayer;
     private Rigidbody2D currentPlayerRigidbody;
+    private PlayController transitionPlayer;
+    private Vector3 muralEntryCheckpointPosition;
+    private bool hasMuralEntryCheckpointPosition;
     private bool isPlayerInside;
     private bool isTransitioning;
 
@@ -158,6 +161,8 @@ public class MuralInteractTrigger : MonoBehaviour
         }
 
         AudioManager.PlaySfx(targetMuralActive ? "sfx_mural_enter" : "sfx_mural_exit");
+        transitionPlayer = currentPlayer;
+        CacheMuralEntryCheckpoint(targetMuralActive);
 
         isTransitioning = true;
         SetHintActive(interactHint, false);
@@ -269,21 +274,47 @@ public class MuralInteractTrigger : MonoBehaviour
 
     private void UpdateMuralCheckpoint(bool muralActive)
     {
-        if (!setCheckpointOnTransition || currentPlayer == null)
+        if (!setCheckpointOnTransition)
+            return;
+
+        PlayController checkpointPlayer = transitionPlayer != null ? transitionPlayer : currentPlayer;
+        if (checkpointPlayer == null)
             return;
 
         if (!muralActive)
         {
-            currentPlayer.RestoreCheckpointBeforeTemporary();
+            checkpointPlayer.RestoreCheckpointBeforeTemporary();
+            transitionPlayer = null;
+            hasMuralEntryCheckpointPosition = false;
             return;
         }
 
-        Vector3 checkpointPosition = checkpointRespawnPoint != null
-            ? checkpointRespawnPoint.position
-            : transform.position;
+        Vector3 checkpointPosition = hasMuralEntryCheckpointPosition
+            ? muralEntryCheckpointPosition
+            : GetMuralEntryCheckpointPosition(checkpointPlayer);
 
-        currentPlayer.SetTemporaryCheckpoint(checkpointPosition);
+        checkpointPlayer.SetTemporaryCheckpoint(checkpointPosition);
         Debug.Log("벽화 전환 세이브 포인트 저장: " + checkpointPosition);
+    }
+
+    private void CacheMuralEntryCheckpoint(bool targetMuralActive)
+    {
+        hasMuralEntryCheckpointPosition = false;
+
+        if (!targetMuralActive || !setCheckpointOnTransition || transitionPlayer == null)
+            return;
+
+        muralEntryCheckpointPosition = GetMuralEntryCheckpointPosition(transitionPlayer);
+        hasMuralEntryCheckpointPosition = true;
+        transitionPlayer.SetTemporaryCheckpoint(muralEntryCheckpointPosition);
+    }
+
+    private Vector3 GetMuralEntryCheckpointPosition(PlayController player)
+    {
+        if (checkpointRespawnPoint != null)
+            return checkpointRespawnPoint.position;
+
+        return player != null ? player.transform.position : transform.position;
     }
 
     private static void SetObjectPairActive(GameObject defaultObject, GameObject muralObject, bool muralActive)

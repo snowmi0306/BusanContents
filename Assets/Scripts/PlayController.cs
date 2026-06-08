@@ -5,6 +5,8 @@ using UnityEngine;
 public class PlayController : MonoBehaviour
 {
     private const float WalkSfxInterval = 0.28f;
+    private const float WalkSfxVolume = 0.85f;
+    private const float WalkSfxStartOffset = 0.3f;
 
     [Header("Move")]
     public float moveSpeed = 5f;
@@ -265,14 +267,33 @@ public class PlayController : MonoBehaviour
 
     private void PlayWalkSfxIfNeeded(float moveInput, bool isGliding)
     {
-        if (!isGrounded || isGliding || Mathf.Abs(moveInput) <= walkInputThreshold)
+        if (!IsWalkAnimationPlaying() && !IsOnGroundForWalkSfx())
+            return;
+
+        if (isGliding || Mathf.Abs(moveInput) <= walkInputThreshold)
             return;
 
         if (Mathf.Abs(rb.linearVelocity.x) <= 0.05f || Time.time < nextWalkSfxTime)
             return;
 
-        AudioManager.PlaySfx("sfx_player_land", 0.55f);
+        AudioManager.PlaySfx("sfx_player_land", WalkSfxVolume, WalkSfxStartOffset);
         nextWalkSfxTime = Time.time + WalkSfxInterval;
+    }
+
+    private bool IsWalkAnimationPlaying()
+    {
+        return !string.IsNullOrEmpty(walkAnimationName)
+            && currentBaseAnimationName == walkAnimationName;
+    }
+
+    private bool IsOnGroundForWalkSfx()
+    {
+        if (isGrounded || IsRecentlyGrounded())
+            return true;
+
+        return playerCollider != null
+            && groundLayer.value != 0
+            && playerCollider.IsTouchingLayers(groundLayer);
     }
 
     private void SetBaseSpineAnimation(string animationName, bool loop)
