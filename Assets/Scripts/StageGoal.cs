@@ -24,6 +24,12 @@ public class StageGoal : MonoBehaviour
     [SerializeField] private DialogueLine[] dialogueLines;
     [SerializeField] private Sprite dandiPortraitSprite;
     [SerializeField] private Sprite npcPortraitSprite;
+    [SerializeField] private bool autoAdvanceDialogue = true;
+    [SerializeField] private float autoAdvanceDialogueDelay = 1.2f;
+
+    [Header("Stage 3 Portal Sound")]
+    [SerializeField] private string portalEnterSceneName = "Stage3";
+    [SerializeField] private string portalEnterSfxName = "sfx_portal_enter";
 
     [Header("Interaction")]
     [SerializeField] private bool requireInteractKey = false;
@@ -112,7 +118,9 @@ public class StageGoal : MonoBehaviour
             return;
 
         isCleared = true;
+        GameCursorManager.SetStagePortalCursorActive(true);
         AudioManager.PlaySfx("sfx_stage_clear");
+        PlayPortalEnterSfxIfNeeded();
         SetInteractHintActive(false);
 
         if (disablePlayerControl)
@@ -121,6 +129,17 @@ public class StageGoal : MonoBehaviour
         }
 
         StartLetterHandoffFlow();
+    }
+
+    private void PlayPortalEnterSfxIfNeeded()
+    {
+        if (string.IsNullOrEmpty(portalEnterSfxName))
+            return;
+
+        if (!string.IsNullOrEmpty(portalEnterSceneName) && SceneManager.GetActiveScene().name != portalEnterSceneName)
+            return;
+
+        AudioManager.PlaySfx(portalEnterSfxName);
     }
 
     private void StartLetterHandoffFlow()
@@ -181,7 +200,7 @@ public class StageGoal : MonoBehaviour
         }
 
         dialogueController.SetPortraitSprites(dandiPortraitSprite, npcPortraitSprite);
-        dialogueController.StartDialogue(dialogueLines, currentPlayerObject, HandleDialogueFinished);
+        dialogueController.StartDialogue(dialogueLines, currentPlayerObject, HandleDialogueFinished, autoAdvanceDialogue, autoAdvanceDialogueDelay);
     }
 
     private void HandleDialogueFinished()

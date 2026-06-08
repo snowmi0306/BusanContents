@@ -91,6 +91,7 @@ public class MuralInteractTrigger : MonoBehaviour
 
         SetHintActive(interactHint, true);
         SetHintTransparency(interactHint, isTransitioning ? disabledInteractHintAlpha : defaultInteractHintAlpha);
+        AudioManager.PlaySfx("sfx_mural_ready");
     }
 
     private void OnTriggerStay2D(Collider2D other)
@@ -225,11 +226,12 @@ public class MuralInteractTrigger : MonoBehaviour
         StabilizeCurrentPlayerForWorldSwap();
 
         ApplyWorldState(muralActive);
+        AudioManager.PlayCurrentSceneBgm(muralActive);
 
         Physics2D.SyncTransforms();
 
         StabilizeCurrentPlayerForWorldSwap();
-        SetMuralCheckpoint();
+        UpdateMuralCheckpoint(muralActive);
 
         onTransitionCompleted?.Invoke();
 
@@ -265,16 +267,22 @@ public class MuralInteractTrigger : MonoBehaviour
         currentPlayerRigidbody.angularVelocity = 0f;
     }
 
-    private void SetMuralCheckpoint()
+    private void UpdateMuralCheckpoint(bool muralActive)
     {
         if (!setCheckpointOnTransition || currentPlayer == null)
             return;
+
+        if (!muralActive)
+        {
+            currentPlayer.RestoreCheckpointBeforeTemporary();
+            return;
+        }
 
         Vector3 checkpointPosition = checkpointRespawnPoint != null
             ? checkpointRespawnPoint.position
             : transform.position;
 
-        currentPlayer.SetCheckpoint(checkpointPosition);
+        currentPlayer.SetTemporaryCheckpoint(checkpointPosition);
         Debug.Log("벽화 전환 세이브 포인트 저장: " + checkpointPosition);
     }
 

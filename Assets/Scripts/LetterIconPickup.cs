@@ -20,7 +20,7 @@ public class LetterIconPickup : MonoBehaviour
 
         pickedUp = true;
         inventory.AddLetter(1);
-        AudioManager.PlaySfx("sfx_item_letter");
+        AudioManager.PlaySfx("sfx_item_fishcake");
 
         Debug.Log($"Letter icon picked up: {inventory.GetCurrentLetterCount()}");
 

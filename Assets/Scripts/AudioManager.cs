@@ -1,16 +1,24 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 [DefaultExecutionOrder(-100)]
 public class AudioManager : MonoBehaviour
 {
     private const string SoundsResourcePath = "Sounds";
+    private const string ButtonClickSfx = "sfx_ui_click";
 
-    private static readonly Dictionary<string, string> ClipAliases = new Dictionary<string, string>
+    private static readonly Dictionary<string, string> SceneBgms = new Dictionary<string, string>
     {
-        { "sfx_ui_confirm", "sfx_ui_click" },
-        { "sfx_item_letter", "sfx_item_fishcake" },
-        { "sfx_mural_enter", "sfx_mural_exit" }
+        { "TitleScene", "bgm_title_loop" },
+        { "StoryCutScene", "bgm_story_cutscene" },
+        { "Stage1", "bgm_stage1_normal_loop" },
+        { "Stage2", "bgm_stage2_normal_loop" },
+        { "Stage3", "bgm_stage3_normal_loop" },
+        { "ClearScene", "bgm_clear_loop" }
     };
 
     private static AudioManager instance;
@@ -22,9 +30,15 @@ public class AudioManager : MonoBehaviour
     [Header("Volume")]
     [SerializeField, Range(0f, 1f)] private float sfxVolume = 1f;
     [SerializeField, Range(0f, 1f)] private float bgmVolume = 0.7f;
+    [SerializeField] private float defaultBgmFadeDuration = 0.5f;
 
-    private readonly Dictionary<string, AudioClip> sfxClips = new Dictionary<string, AudioClip>();
+    private readonly Dictionary<string, AudioClip> clips = new Dictionary<string, AudioClip>();
     private readonly HashSet<string> missingClipWarnings = new HashSet<string>();
+    private readonly List<Button> hookedButtons = new List<Button>();
+
+    private AudioClip currentBgm;
+    private Coroutine bgmFadeRoutine;
+    private bool initialized;
 
     public static AudioManager Instance
     {
@@ -51,12 +65,22 @@ public class AudioManager : MonoBehaviour
         Instance.PlayBgmInternal(clipName, loop);
     }
 
+    public static void PlayBgmWithFade(string clipName, float fadeDuration = -1f, bool loop = true)
+    {
+        Instance.PlayBgmWithFadeInternal(clipName, fadeDuration, loop);
+    }
+
+    public static void PlayCurrentSceneBgm(bool muralWorld = false)
+    {
+        Instance.PlaySceneBgm(SceneManager.GetActiveScene().name, muralWorld);
+    }
+
     public static void StopBgm()
     {
-        if (instance == null || instance.bgmSource == null)
+        if (instance == null)
             return;
 
-        instance.bgmSource.Stop();
+        instance.StopBgmInternal();
     }
 
     private static void EnsureInstance()
@@ -89,11 +113,29 @@ public class AudioManager : MonoBehaviour
         Initialize();
     }
 
+    private void OnDestroy()
+    {
+        if (instance != this)
+            return;
+
+        SceneManager.sceneLoaded -= HandleSceneLoaded;
+    }
+
     private void Initialize()
     {
+        if (initialized)
+            return;
+
+        initialized = true;
         DontDestroyOnLoad(gameObject);
         EnsureAudioSources();
         LoadClips();
+
+        SceneManager.sceneLoaded -= HandleSceneLoaded;
+        SceneManager.sceneLoaded += HandleSceneLoaded;
+
+        PlaySceneBgm(SceneManager.GetActiveScene().name, false);
+        HookSceneButtons();
     }
 
     private void EnsureAudioSources()
@@ -118,18 +160,101 @@ public class AudioManager : MonoBehaviour
 
     private void LoadClips()
     {
-        if (sfxClips.Count > 0)
+        if (clips.Count > 0)
             return;
 
-        AudioClip[] clips = Resources.LoadAll<AudioClip>(SoundsResourcePath);
-        foreach (AudioClip clip in clips)
+        AudioClip[] loadedClips = Resources.LoadAll<AudioClip>(SoundsResourcePath);
+        foreach (AudioClip clip in loadedClips)
         {
             if (clip == null || string.IsNullOrWhiteSpace(clip.name))
                 continue;
 
             string key = NormalizeClipName(clip.name);
-            if (!sfxClips.ContainsKey(key))
-                sfxClips.Add(key, clip);
+            if (!clips.ContainsKey(key))
+                clips.Add(key, clip);
+        }
+    }
+
+    private void HandleSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        PlaySceneBgm(scene.name, false);
+        HookSceneButtons();
+        StartCoroutine(HookSceneButtonsAfterFrame());
+    }
+
+    private IEnumerator HookSceneButtonsAfterFrame()
+    {
+        yield return null;
+        HookSceneButtons();
+    }
+
+    private void HookSceneButtons()
+    {
+        hookedButtons.RemoveAll(button => button == null);
+
+        Button[] buttons = FindObjectsByType<Button>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        foreach (Button button in buttons)
+        {
+            if (button == null)
+                continue;
+
+            button.onClick.RemoveListener(PlayButtonClickSfx);
+
+            if (hookedButtons.Contains(button))
+                continue;
+
+            EventTrigger eventTrigger = button.GetComponent<EventTrigger>();
+            if (eventTrigger == null)
+                eventTrigger = button.gameObject.AddComponent<EventTrigger>();
+
+            if (eventTrigger.triggers == null)
+                eventTrigger.triggers = new List<EventTrigger.Entry>();
+
+            EventTrigger.Entry pressEntry = new EventTrigger.Entry
+            {
+                eventID = EventTriggerType.PointerDown
+            };
+            pressEntry.callback.AddListener(_ => PlayButtonPressSfx(button));
+            eventTrigger.triggers.Add(pressEntry);
+
+            hookedButtons.Add(button);
+        }
+    }
+
+    private void PlayButtonClickSfx()
+    {
+        PlaySfxInternal(ButtonClickSfx, 1f);
+    }
+
+    private void PlayButtonPressSfx(Button button)
+    {
+        if (button != null && !button.IsInteractable())
+            return;
+
+        PlaySfxInternal(ButtonClickSfx, 1f);
+    }
+
+    private void PlaySceneBgm(string sceneName, bool muralWorld)
+    {
+        string bgmName = GetSceneBgmName(sceneName, muralWorld);
+        if (string.IsNullOrEmpty(bgmName))
+            return;
+
+        PlayBgmWithFadeInternal(bgmName, defaultBgmFadeDuration, true);
+    }
+
+    private static string GetSceneBgmName(string sceneName, bool muralWorld)
+    {
+        switch (sceneName)
+        {
+            case "Stage1":
+                return muralWorld ? "bgm_stage1_mural_loop" : "bgm_stage1_normal_loop";
+            case "Stage2":
+                return muralWorld ? "bgm_stage2_mural_loop" : "bgm_stage2_normal_loop";
+            case "Stage3":
+                return muralWorld ? "bgm_stage3_mural_loop" : "bgm_stage3_normal_loop";
+            default:
+                return SceneBgms.TryGetValue(sceneName, out string bgmName) ? bgmName : string.Empty;
         }
     }
 
@@ -148,13 +273,94 @@ public class AudioManager : MonoBehaviour
         if (clip == null || bgmSource == null)
             return;
 
-        if (bgmSource.clip == clip && bgmSource.isPlaying)
+        if (currentBgm == clip && bgmSource.clip == clip && bgmSource.isPlaying)
+        {
+            bgmSource.loop = loop;
             return;
+        }
 
+        StopBgmFadeRoutine();
+        currentBgm = clip;
         bgmSource.clip = clip;
         bgmSource.loop = loop;
         bgmSource.volume = bgmVolume;
         bgmSource.Play();
+    }
+
+    private void PlayBgmWithFadeInternal(string clipName, float fadeDuration, bool loop)
+    {
+        AudioClip clip = GetClip(clipName);
+        if (clip == null || bgmSource == null)
+            return;
+
+        if (currentBgm == clip && bgmSource.clip == clip && bgmSource.isPlaying)
+        {
+            bgmSource.loop = loop;
+            return;
+        }
+
+        float duration = fadeDuration < 0f ? defaultBgmFadeDuration : fadeDuration;
+        if (duration <= 0f)
+        {
+            PlayBgmInternal(clipName, loop);
+            return;
+        }
+
+        StopBgmFadeRoutine();
+        bgmFadeRoutine = StartCoroutine(FadeToBgmRoutine(clip, duration, loop));
+    }
+
+    private IEnumerator FadeToBgmRoutine(AudioClip clip, float fadeDuration, bool loop)
+    {
+        float halfDuration = Mathf.Max(0.01f, fadeDuration * 0.5f);
+
+        if (bgmSource.isPlaying && bgmSource.clip != null)
+            yield return FadeBgmVolumeRoutine(bgmSource.volume, 0f, halfDuration);
+
+        currentBgm = clip;
+        bgmSource.clip = clip;
+        bgmSource.loop = loop;
+        bgmSource.volume = 0f;
+        bgmSource.Play();
+
+        yield return FadeBgmVolumeRoutine(0f, bgmVolume, halfDuration);
+        bgmSource.volume = bgmVolume;
+        bgmFadeRoutine = null;
+    }
+
+    private IEnumerator FadeBgmVolumeRoutine(float from, float to, float duration)
+    {
+        float time = 0f;
+        while (time < duration)
+        {
+            time += Time.unscaledDeltaTime;
+            float t = Mathf.Clamp01(time / duration);
+            bgmSource.volume = Mathf.Lerp(from, to, t);
+            yield return null;
+        }
+
+        bgmSource.volume = to;
+    }
+
+    private void StopBgmInternal()
+    {
+        StopBgmFadeRoutine();
+
+        if (bgmSource == null)
+            return;
+
+        bgmSource.Stop();
+        bgmSource.clip = null;
+        currentBgm = null;
+    }
+
+    private void StopBgmFadeRoutine()
+    {
+        if (bgmFadeRoutine == null)
+            return;
+
+        StopCoroutine(bgmFadeRoutine);
+        bgmFadeRoutine = null;
     }
 
     private AudioClip GetClip(string clipName)
@@ -163,15 +369,8 @@ public class AudioManager : MonoBehaviour
         if (string.IsNullOrEmpty(key))
             return null;
 
-        if (sfxClips.TryGetValue(key, out AudioClip clip))
+        if (clips.TryGetValue(key, out AudioClip clip))
             return clip;
-
-        if (ClipAliases.TryGetValue(key, out string aliasName))
-        {
-            string aliasKey = NormalizeClipName(aliasName);
-            if (sfxClips.TryGetValue(aliasKey, out clip))
-                return clip;
-        }
 
         WarnMissingClipOnce(key);
         return null;

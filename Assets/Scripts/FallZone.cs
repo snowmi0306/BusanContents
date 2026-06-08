@@ -11,10 +11,21 @@ public class FallZone : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.CompareTag("Player") && player != null)
+        if (!collision.CompareTag("Player"))
         {
-            Debug.Log("¶³¾îÁü!");
-            player.OnFallZoneHit();
+            return;
         }
+
+        AudioManager.PlaySfx("sfx_fall_respawn");
+
+        PlayController hitPlayer = collision.GetComponentInParent<PlayController>();
+        if (hitPlayer == null)
+            hitPlayer = player;
+
+        if (hitPlayer == null)
+            return;
+
+        Debug.Log("¶³¾îÁü!");
+        hitPlayer.OnFallZoneHit();
     }
 }

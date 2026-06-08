@@ -17345,6 +17345,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 1812341082}
     - target: {fileID: 4110524559377693115, guid: 22aaee9341ed24945a98538a8389beba, type: 3}
+      propertyPath: npcPortraitSprite
+      value: 
+      objectReference: {fileID: -4636557201241210594, guid: 6685f1fa39b59e64a962808433c385e2, type: 3}
+    - target: {fileID: 4110524559377693115, guid: 22aaee9341ed24945a98538a8389beba, type: 3}
       propertyPath: letterHandoffAnimator
       value: 
       objectReference: {fileID: 1812341083}

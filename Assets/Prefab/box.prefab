@@ -12,6 +12,8 @@ GameObject:
   - component: {fileID: 7757478304469364295}
   - component: {fileID: 1968533665947482392}
   - component: {fileID: 6087279950734917635}
+  - component: {fileID: 8812645219077435531}
+  - component: {fileID: 6241589352894712140}
   m_Layer: 3
   m_Name: box
   m_TagString: Untagged
@@ -166,3 +168,34 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 1.2595978, y: 1.2748146}
   m_EdgeRadius: 0
+--- !u!114 &8812645219077435531
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7076435379812630993}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5f98ecb36a8d4be4a8d7601a9e4d9c21, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::BoxFallRespawn
+--- !u!114 &6241589352894712140
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7076435379812630993}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d9f4e2b38c9f4cd4a8c463c2a8d2d981, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::WoodBoxAudio
+  pushSfxName: sfx_woodbox_push
+  dropSfxName: sfx_woodbox_drop
+  minPushSpeed: 0.08
+  pushCooldown: 0.35
+  pushVolume: 0.75
+  minDropSpeed: 1.2
+  dropCooldown: 0.15

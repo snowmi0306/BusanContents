@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class PlayController : MonoBehaviour
 {
+    private const float WalkSfxInterval = 0.28f;
+
     [Header("Move")]
     public float moveSpeed = 5f;
 
@@ -52,11 +54,14 @@ public class PlayController : MonoBehaviour
     private bool wasGrounded;
     private bool wasGliding;
     private bool groundStateInitialized;
+    private float nextWalkSfxTime;
 
     private int currentHealth;
     private float invincibleTimer = 0f;
     private Vector3 spawnPoint;
     private Vector3 stageStartPoint;
+    private Vector3 checkpointBeforeTemporary;
+    private bool hasTemporaryCheckpoint;
 
     private void Start()
     {
@@ -101,6 +106,7 @@ public class PlayController : MonoBehaviour
         bool isGliding = Input.GetKey(KeyCode.Space) && !isRecentlyGrounded && rb.linearVelocity.y < 0 && currentStamina > 0;
 
         UpdateSpineAnimation(moveInput, isGliding);
+        PlayWalkSfxIfNeeded(moveInput, isGliding);
     }
 
 
@@ -257,6 +263,18 @@ public class PlayController : MonoBehaviour
         SetBaseSpineAnimation(idleAnimationName, true);
     }
 
+    private void PlayWalkSfxIfNeeded(float moveInput, bool isGliding)
+    {
+        if (!isGrounded || isGliding || Mathf.Abs(moveInput) <= walkInputThreshold)
+            return;
+
+        if (Mathf.Abs(rb.linearVelocity.x) <= 0.05f || Time.time < nextWalkSfxTime)
+            return;
+
+        AudioManager.PlaySfx("sfx_player_land", 0.55f);
+        nextWalkSfxTime = Time.time + WalkSfxInterval;
+    }
+
     private void SetBaseSpineAnimation(string animationName, bool loop)
     {
         if (skeletonAnimation == null || string.IsNullOrEmpty(animationName) || currentBaseAnimationName == animationName)
@@ -321,7 +339,6 @@ public class PlayController : MonoBehaviour
         }
 
         currentHealth -= damage;
-        AudioManager.PlaySfx("sfx_player_hit");
         invincibleTimer = invincibleDuration;
         PlayHitAnimation();
 
@@ -381,8 +398,31 @@ public class PlayController : MonoBehaviour
 
     public void SetCheckpoint(Vector3 checkpointPos)
     {
+        hasTemporaryCheckpoint = false;
         spawnPoint = checkpointPos;
         Debug.Log("체크포인트 저장: " + checkpointPos);
+    }
+
+    public void SetTemporaryCheckpoint(Vector3 checkpointPos)
+    {
+        if (!hasTemporaryCheckpoint)
+        {
+            checkpointBeforeTemporary = spawnPoint;
+            hasTemporaryCheckpoint = true;
+        }
+
+        spawnPoint = checkpointPos;
+        Debug.Log("임시 체크포인트 저장: " + checkpointPos);
+    }
+
+    public void RestoreCheckpointBeforeTemporary()
+    {
+        if (!hasTemporaryCheckpoint)
+            return;
+
+        spawnPoint = checkpointBeforeTemporary;
+        hasTemporaryCheckpoint = false;
+        Debug.Log("기존 체크포인트 복구: " + spawnPoint);
     }
 
     public int GetCurrentHealth()

@@ -6,6 +6,9 @@ using UnityEngine.UI;
 
 public class VisualNovelDialogueController : MonoBehaviour
 {
+    private const string DialogueNextSfx = "sfx_dialogue_next";
+    private const string DialogueBlipSfx = "sfx_dialogue_blip";
+    private const int DialogueBlipCharacterInterval = 3;
     [Header("Dialogue UI")]
     [SerializeField] private GameObject dialoguePanel;
     [SerializeField] private Image dandiPortrait;
@@ -27,6 +30,9 @@ public class VisualNovelDialogueController : MonoBehaviour
     [Header("Typing")]
     [SerializeField] private float charactersPerSecond = 35f;
 
+    [Header("Auto Advance")]
+    [SerializeField] private float defaultAutoAdvanceDelay = 1.2f;
+
     [Header("Cursor")]
     [SerializeField] private bool showCursorDuringDialogue = true;
     [SerializeField] private bool restoreCursorAfterDialogue = false;
@@ -37,7 +43,10 @@ public class VisualNovelDialogueController : MonoBehaviour
     private int currentLineIndex;
     private Action finishedCallback;
     private Coroutine typingCoroutine;
+    private Coroutine autoAdvanceCoroutine;
     private bool isTyping;
+    private bool autoAdvanceEnabled;
+    private float autoAdvanceDelay;
     private string currentFullText = string.Empty;
     private GameObject currentPlayerObject;
     private bool previousCursorVisible;
@@ -100,6 +109,11 @@ public class VisualNovelDialogueController : MonoBehaviour
 
     public void StartDialogue(DialogueLine[] dialogueLines, GameObject playerObject, Action onDialogueFinished)
     {
+        StartDialogue(dialogueLines, playerObject, onDialogueFinished, false, defaultAutoAdvanceDelay);
+    }
+
+    public void StartDialogue(DialogueLine[] dialogueLines, GameObject playerObject, Action onDialogueFinished, bool useAutoAdvance, float delayAfterLine)
+    {
         if (IsPlaying)
             return;
 
@@ -114,6 +128,7 @@ public class VisualNovelDialogueController : MonoBehaviour
         }
 
         StopTypingCoroutine();
+        StopAutoAdvanceCoroutine();
 
         currentLines = dialogueLines;
         currentLineIndex = 0;
@@ -121,6 +136,8 @@ public class VisualNovelDialogueController : MonoBehaviour
         currentPlayerObject = GetPlayerObject(playerObject);
         IsPlaying = true;
         isTyping = false;
+        autoAdvanceEnabled = useAutoAdvance;
+        autoAdvanceDelay = delayAfterLine >= 0f ? delayAfterLine : defaultAutoAdvanceDelay;
         currentFullText = string.Empty;
 
         if (dialoguePanel != null)
@@ -136,16 +153,27 @@ public class VisualNovelDialogueController : MonoBehaviour
 
     public void AdvanceDialogue()
     {
+        AdvanceDialogue(true);
+    }
+
+    private void AdvanceDialogue(bool playNextSfx)
+    {
         if (!IsPlaying)
             return;
 
-        AudioManager.PlaySfx("sfx_dialogue_next");
+        StopAutoAdvanceCoroutine();
+
+        if (playNextSfx)
+        {
+            AudioManager.PlaySfx(DialogueNextSfx);
+        }
 
         if (isTyping)
         {
             StopTypingCoroutine();
             SetDialogueText(currentFullText);
             isTyping = false;
+            ScheduleAutoAdvance();
             return;
         }
 
@@ -176,6 +204,7 @@ public class VisualNovelDialogueController : MonoBehaviour
             SetDialogueText(string.Empty);
             SetPortraitAlpha(DialogueSpeaker.NPC);
             isTyping = false;
+            ScheduleAutoAdvance();
             return;
         }
 
@@ -191,6 +220,7 @@ public class VisualNovelDialogueController : MonoBehaviour
         {
             SetDialogueText(currentFullText);
             isTyping = false;
+            ScheduleAutoAdvance();
             return;
         }
 
@@ -207,6 +237,11 @@ public class VisualNovelDialogueController : MonoBehaviour
         {
             SetDialogueText(fullText.Substring(0, i));
 
+            if (ShouldPlayDialogueBlip(fullText[i - 1], i))
+            {
+                AudioManager.PlaySfx(DialogueBlipSfx, 0.6f);
+            }
+
             if (secondsPerCharacter > 0f)
             {
                 yield return new WaitForSeconds(secondsPerCharacter);
@@ -219,14 +254,25 @@ public class VisualNovelDialogueController : MonoBehaviour
 
         isTyping = false;
         typingCoroutine = null;
+        ScheduleAutoAdvance();
+    }
+
+    private static bool ShouldPlayDialogueBlip(char character, int visibleCharacterCount)
+    {
+        if (char.IsWhiteSpace(character))
+            return false;
+
+        return visibleCharacterCount == 1 || visibleCharacterCount % DialogueBlipCharacterInterval == 0;
     }
 
     private void FinishDialogue()
     {
         StopTypingCoroutine();
+        StopAutoAdvanceCoroutine();
 
         IsPlaying = false;
         isTyping = false;
+        autoAdvanceEnabled = false;
         currentLines = null;
         currentFullText = string.Empty;
 
@@ -488,6 +534,40 @@ public class VisualNovelDialogueController : MonoBehaviour
         {
             StopCoroutine(typingCoroutine);
             typingCoroutine = null;
+        }
+    }
+
+    private void ScheduleAutoAdvance()
+    {
+        StopAutoAdvanceCoroutine();
+
+        if (!autoAdvanceEnabled || !IsPlaying || isTyping)
+            return;
+
+        autoAdvanceCoroutine = StartCoroutine(AutoAdvanceAfterDelay());
+    }
+
+    private IEnumerator AutoAdvanceAfterDelay()
+    {
+        if (autoAdvanceDelay > 0f)
+        {
+            yield return new WaitForSeconds(autoAdvanceDelay);
+        }
+        else
+        {
+            yield return null;
+        }
+
+        autoAdvanceCoroutine = null;
+        AdvanceDialogue(false);
+    }
+
+    private void StopAutoAdvanceCoroutine()
+    {
+        if (autoAdvanceCoroutine != null)
+        {
+            StopCoroutine(autoAdvanceCoroutine);
+            autoAdvanceCoroutine = null;
         }
     }
 
