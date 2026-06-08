@@ -46,7 +46,7 @@ public class WoodBoxAudio : MonoBehaviour
         if (lastVerticalVelocity > -minDropSpeed || !HasUpwardContact(collision))
             return;
 
-        AudioManager.PlaySfx(dropSfxName);
+        AudioManager.PlaySfx(dropSfxName, 1f, 0.5f);
         nextDropTime = Time.time + dropCooldown;
     }
 

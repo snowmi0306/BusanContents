@@ -72,6 +72,8 @@ public class StageIntroController : MonoBehaviour
         {
             confirmButton.onClick.RemoveListener(RequestConfirm);
         }
+
+        GameCursorManager.SetStageIntroCursorActive(false);
     }
 
     private void Update()
@@ -90,6 +92,7 @@ public class StageIntroController : MonoBehaviour
         isPlaying = true;
         canConfirm = false;
         confirmRequested = false;
+        GameCursorManager.SetStageIntroCursorActive(true);
 
         SetPlayerControl(false);
 
@@ -238,6 +241,7 @@ public class StageIntroController : MonoBehaviour
     private void EndIntro()
     {
         isPlaying = false;
+        GameCursorManager.SetStageIntroCursorActive(false);
 
         if (introCanvasGroup != null)
         {

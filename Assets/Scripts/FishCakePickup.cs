@@ -14,7 +14,7 @@ public class FishCakePickup : MonoBehaviour
             return;
 
         player.TryHeal(healAmount);
-        AudioManager.PlaySfx("sfx_item_fishcake");
+        AudioManager.PlaySfx("sfx_item_fishcake", 1f, 0.5f);
 
         Destroy(gameObject);
     }

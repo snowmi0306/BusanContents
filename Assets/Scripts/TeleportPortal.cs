@@ -6,6 +6,10 @@ public class TeleportPortal : MonoBehaviour
     [Tooltip("이동할 반대편 우체통(포탈)의 위치를 넣어주세요.")]
     public Transform destination;
 
+    [Header("사운드")]
+    [SerializeField] private string portalEnterSceneName = "Stage3";
+    [SerializeField] private string portalEnterSfxName = "sfx_portal_enter";
+
     [Header("이펙트 설정")]
     [Tooltip("도착 지점에서 터질 이펙트 프리팹을 넣어주세요.")]
     public GameObject teleportEffectPrefab;
@@ -29,6 +33,7 @@ public class TeleportPortal : MonoBehaviour
 
             // 2. 쿨타임 갱신
             lastTeleportTime = Time.time;
+            PlayPortalEnterSfxIfNeeded();
 
             // 3. 플레이어 이동 (도착지로 순간이동)
             other.transform.position = destination.position;
@@ -45,5 +50,16 @@ public class TeleportPortal : MonoBehaviour
 
             Debug.Log("우체통 포탈 이동 및 이펙트 발동 완료!");
         }
+    }
+
+    private void PlayPortalEnterSfxIfNeeded()
+    {
+        if (string.IsNullOrEmpty(portalEnterSfxName))
+            return;
+
+        if (!string.IsNullOrEmpty(portalEnterSceneName) && UnityEngine.SceneManagement.SceneManager.GetActiveScene().name != portalEnterSceneName)
+            return;
+
+        AudioManager.PlaySfx(portalEnterSfxName);
     }
 }

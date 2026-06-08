@@ -31,7 +31,7 @@ public class VisualNovelDialogueController : MonoBehaviour
     [SerializeField] private float charactersPerSecond = 35f;
 
     [Header("Auto Advance")]
-    [SerializeField] private float defaultAutoAdvanceDelay = 2.5f;
+    [SerializeField] private float defaultAutoAdvanceDelay = 5f;
 
     [Header("Cursor")]
     [SerializeField] private bool showCursorDuringDialogue = true;
@@ -239,7 +239,7 @@ public class VisualNovelDialogueController : MonoBehaviour
 
             if (ShouldPlayDialogueBlip(fullText[i - 1], i))
             {
-                AudioManager.PlaySfx(DialogueBlipSfx, 0.6f);
+                AudioManager.PlaySfx(DialogueBlipSfx, 0.6f, 0.5f);
             }
 
             if (secondsPerCharacter > 0f)

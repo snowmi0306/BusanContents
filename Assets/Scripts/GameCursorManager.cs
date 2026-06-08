@@ -14,15 +14,13 @@ public class GameCursorManager : MonoBehaviour
     private const string Stage3SceneName = "Stage3";
 
     private static GameCursorManager instance;
+    private static bool stageIntroCursorActive;
     private static bool stagePortalCursorActive;
 
     [SerializeField] private Vector2 cursorHotspot = Vector2.zero;
-    [SerializeField, Min(1f)] private float cursorScale = 2f;
     [SerializeField] private CursorMode cursorMode = CursorMode.ForceSoftware;
 
     private Texture2D cursorTexture;
-    private Texture2D scaledCursorTexture;
-    private float scaledCursorTextureScale;
     private bool warnedMissingCursor;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
@@ -34,6 +32,20 @@ public class GameCursorManager : MonoBehaviour
     public static void SetStagePortalCursorActive(bool active)
     {
         stagePortalCursorActive = active;
+        ApplyIfAvailableOrNeeded(active);
+    }
+
+    public static void SetStageIntroCursorActive(bool active)
+    {
+        stageIntroCursorActive = active;
+        ApplyIfAvailableOrNeeded(active);
+    }
+
+    private static void ApplyIfAvailableOrNeeded(bool active)
+    {
+        if (!active && instance == null)
+            return;
+
         EnsureInstance();
         instance.ApplyCursorForCurrentScene();
     }
@@ -74,12 +86,6 @@ public class GameCursorManager : MonoBehaviour
             return;
 
         SceneManager.sceneLoaded -= HandleSceneLoaded;
-
-        if (scaledCursorTexture != null)
-        {
-            Destroy(scaledCursorTexture);
-            scaledCursorTexture = null;
-        }
     }
 
     private void Initialize()
@@ -95,6 +101,7 @@ public class GameCursorManager : MonoBehaviour
 
     private void HandleSceneLoaded(Scene scene, LoadSceneMode mode)
     {
+        stageIntroCursorActive = false;
         stagePortalCursorActive = false;
         ApplyCursorForScene(scene.name);
     }
@@ -112,8 +119,8 @@ public class GameCursorManager : MonoBehaviour
             return;
         }
 
-        Texture2D activeCursorTexture = GetActiveCursorTexture();
-        if (activeCursorTexture == null)
+        LoadCursorTexture();
+        if (cursorTexture == null)
         {
             WarnMissingCursorOnce();
             Cursor.SetCursor(null, Vector2.zero, CursorMode.Auto);
@@ -122,7 +129,7 @@ public class GameCursorManager : MonoBehaviour
 
         Cursor.visible = true;
         Cursor.lockState = CursorLockMode.None;
-        Cursor.SetCursor(activeCursorTexture, cursorHotspot * GetCursorScale(), cursorMode);
+        Cursor.SetCursor(cursorTexture, cursorHotspot, cursorMode);
     }
 
     private void LoadCursorTexture()
@@ -133,71 +140,13 @@ public class GameCursorManager : MonoBehaviour
         cursorTexture = Resources.Load<Texture2D>(CursorResourcePath);
     }
 
-    private Texture2D GetActiveCursorTexture()
-    {
-        LoadCursorTexture();
-        if (cursorTexture == null)
-            return null;
-
-        float scale = GetCursorScale();
-        if (Mathf.Approximately(scale, 1f))
-            return cursorTexture;
-
-        if (scaledCursorTexture != null && Mathf.Approximately(scaledCursorTextureScale, scale))
-            return scaledCursorTexture;
-
-        if (scaledCursorTexture != null)
-        {
-            Destroy(scaledCursorTexture);
-            scaledCursorTexture = null;
-        }
-
-        int width = Mathf.Max(1, Mathf.RoundToInt(cursorTexture.width * scale));
-        int height = Mathf.Max(1, Mathf.RoundToInt(cursorTexture.height * scale));
-        scaledCursorTexture = CreateScaledTexture(cursorTexture, width, height);
-        scaledCursorTextureScale = scale;
-
-        return scaledCursorTexture != null ? scaledCursorTexture : cursorTexture;
-    }
-
-    private float GetCursorScale()
-    {
-        return Mathf.Max(1f, cursorScale);
-    }
-
-    private static Texture2D CreateScaledTexture(Texture2D source, int width, int height)
-    {
-        RenderTexture previousActive = RenderTexture.active;
-        RenderTexture temporary = RenderTexture.GetTemporary(width, height, 0, RenderTextureFormat.ARGB32);
-        temporary.filterMode = FilterMode.Point;
-
-        FilterMode previousFilterMode = source.filterMode;
-        source.filterMode = FilterMode.Point;
-        Graphics.Blit(source, temporary);
-        source.filterMode = previousFilterMode;
-
-        RenderTexture.active = temporary;
-
-        Texture2D result = new Texture2D(width, height, TextureFormat.RGBA32, false)
-        {
-            filterMode = FilterMode.Point,
-            wrapMode = TextureWrapMode.Clamp
-        };
-        result.ReadPixels(new Rect(0, 0, width, height), 0, 0);
-        result.Apply(false, false);
-
-        RenderTexture.active = previousActive;
-        RenderTexture.ReleaseTemporary(temporary);
-
-        return result;
-    }
-
     private static bool ShouldUseCustomCursor(string sceneName)
     {
         return sceneName == SampleSceneName
             || sceneName == TitleSceneName
             || sceneName == StoryCutSceneName
             || sceneName == ClearSceneName
+            || stageIntroCursorActive && IsStageScene(sceneName)
             || stagePortalCursorActive && IsStageScene(sceneName);
     }
 
