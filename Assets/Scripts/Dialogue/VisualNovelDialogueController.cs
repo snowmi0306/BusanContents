@@ -21,6 +21,7 @@ public class VisualNovelDialogueController : MonoBehaviour
 
     [Header("Layout Recovery")]
     [SerializeField] private bool applyLayoutOnAwake = true;
+    [SerializeField] private bool applySpeakerNameLayoutOnAwake = false;
     [SerializeField] private RectTransform dialogueBox;
     [SerializeField] private RectTransform dimBackground;
 
@@ -31,7 +32,7 @@ public class VisualNovelDialogueController : MonoBehaviour
     [SerializeField] private float charactersPerSecond = 35f;
 
     [Header("Auto Advance")]
-    [SerializeField] private float defaultAutoAdvanceDelay = 5f;
+    [SerializeField] private float defaultAutoAdvanceDelay = 9f;
 
     [Header("Cursor")]
     [SerializeField] private bool showCursorDuringDialogue = true;
@@ -380,7 +381,12 @@ public class VisualNovelDialogueController : MonoBehaviour
     {
         ConfigurePortrait(dandiPortrait);
         ConfigurePortrait(npcPortrait);
-        ConfigureSpeakerNameText();
+
+        if (applySpeakerNameLayoutOnAwake)
+        {
+            ConfigureSpeakerNameText();
+        }
+
         ConfigureDialogueText();
     }
 

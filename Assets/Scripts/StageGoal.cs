@@ -25,7 +25,7 @@ public class StageGoal : MonoBehaviour
     [SerializeField] private Sprite dandiPortraitSprite;
     [SerializeField] private Sprite npcPortraitSprite;
     [SerializeField] private bool autoAdvanceDialogue = true;
-    [SerializeField] private float autoAdvanceDialogueDelay = 5f;
+    [SerializeField] private float autoAdvanceDialogueDelay = 9f;
 
     [Header("Interaction")]
     [SerializeField] private bool requireInteractKey = false;
