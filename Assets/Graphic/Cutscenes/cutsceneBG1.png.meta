@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 045924abd68eea047bbf4950bfeba8a8
+guid: 52730e0b201bf88438cf18d6810da05f
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 95394314142854188
-    second: cutscene_story_02_dandi_watches_0
+      213: 1904026933945879370
+    second: cutsceneBG1_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -100,13 +100,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: cutscene_story_02_dandi_watches_0
+      name: cutsceneBG1_0
       rect:
         serializedVersion: 2
         x: 0
         y: 0
-        width: 680
-        height: 537
+        width: 3836
+        height: 2160
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -115,8 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: c2ca3109f98e25100800000000000000
-      internalID: 95394314142854188
+      spriteID: a4bce9098667c6a10800000000000000
+      internalID: 1904026933945879370
       vertices: []
       indices: 
       edges: []
@@ -135,7 +135,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      cutscene_story_02_dandi_watches_0: 95394314142854188
+      cutsceneBG1_0: 1904026933945879370
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
