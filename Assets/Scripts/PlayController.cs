@@ -5,7 +5,7 @@ using UnityEngine;
 public class PlayController : MonoBehaviour
 {
     private const float WalkSfxInterval = 0.28f;
-    private const float WalkSfxVolume = 0.85f;
+    private const float WalkSfxVolume = 2.5f;
     private const float WalkSfxStartOffset = 0.3f;
 
     [Header("Move")]

@@ -534,13 +534,17 @@ MonoBehaviour:
   introCanvasGroup: {fileID: 1464086278}
   mailRect: {fileID: 2120902495}
   mailImage: {fileID: 2120902496}
+  confirmButton: {fileID: 0}
+  confirmButtonCanvasGroup: {fileID: 0}
+  confirmButtonFadeInDuration: 0.25
   mailStartPosition: {x: 0, y: 200}
   mailEndPosition: {x: 0, y: 0}
   moveDuration: 1.4
-  holdDuration: 2
+  panelFadeOutDuration: 0.5
   mailStartAlpha: 0.5
   mailEndAlpha: 1
-  skipKey: 32
+  confirmKey: 32
+  allowSpaceToConfirm: 1
   playerController: {fileID: 0}
 --- !u!1 &1283236900
 GameObject:

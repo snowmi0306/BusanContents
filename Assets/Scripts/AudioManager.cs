@@ -265,7 +265,7 @@ public class AudioManager : MonoBehaviour
         if (clip == null || sfxSource == null)
             return;
 
-        float volume = Mathf.Clamp01(volumeScale) * sfxVolume;
+        float volume = Mathf.Clamp(volumeScale, 0f, 3f) * sfxVolume;
         if (startOffset <= 0f)
         {
             sfxSource.PlayOneShot(clip, volume);
@@ -281,18 +281,42 @@ public class AudioManager : MonoBehaviour
             yield break;
 
         float playStartTime = Mathf.Clamp(startOffset, 0f, Mathf.Max(0f, clip.length - 0.01f));
-        AudioSource offsetSource = gameObject.AddComponent<AudioSource>();
-        offsetSource.playOnAwake = false;
-        offsetSource.loop = false;
-        offsetSource.clip = clip;
-        offsetSource.volume = volume;
-        offsetSource.time = playStartTime;
-        offsetSource.Play();
+        AudioSource[] offsetSources = CreateOffsetSfxSources(clip, volume, playStartTime);
 
         yield return new WaitForSecondsRealtime(Mathf.Max(0.01f, clip.length - playStartTime) + 0.1f);
 
-        if (offsetSource != null)
-            Destroy(offsetSource);
+        foreach (AudioSource offsetSource in offsetSources)
+        {
+            if (offsetSource != null)
+                Destroy(offsetSource);
+        }
+    }
+
+    private AudioSource[] CreateOffsetSfxSources(AudioClip clip, float volume, float playStartTime)
+    {
+        int fullVolumeSourceCount = Mathf.FloorToInt(volume);
+        float remainingVolume = volume - fullVolumeSourceCount;
+        int sourceCount = fullVolumeSourceCount + (remainingVolume > 0.01f ? 1 : 0);
+        sourceCount = Mathf.Max(1, sourceCount);
+
+        AudioSource[] offsetSources = new AudioSource[sourceCount];
+        for (int i = 0; i < sourceCount; i++)
+        {
+            float sourceVolume = i < fullVolumeSourceCount ? 1f : remainingVolume;
+            if (sourceVolume <= 0.01f)
+                sourceVolume = Mathf.Clamp01(volume);
+
+            AudioSource offsetSource = gameObject.AddComponent<AudioSource>();
+            offsetSource.playOnAwake = false;
+            offsetSource.loop = false;
+            offsetSource.clip = clip;
+            offsetSource.volume = sourceVolume;
+            offsetSource.time = playStartTime;
+            offsetSource.Play();
+            offsetSources[i] = offsetSource;
+        }
+
+        return offsetSources;
     }
 
     private void PlayBgmInternal(string clipName, bool loop)
